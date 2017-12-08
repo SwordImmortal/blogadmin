@@ -1,0 +1,27 @@
+public class ${entityName}Mapper  implements RowMapper<$entityName> {
+#if($checkNull)
+       private Set<String> set = new HashSet<>();
+#end
+       public BdOrg mapRow(ResultSet rs, int rowNum) throws SQLException {
+#if($checkNull)
+       if(set.isEmpty()){
+  	      ResultSetMetaData md = rs.getMetaData();
+          for (int i = 1; i <= md.getColumnCount(); i++) {
+              set.add(md.getColumnLabel(i));
+          }	
+       }
+#end
+       $entityName $entityObjName = new $entityName();
+#foreach ($fieldName in $fieldNames)
+#set($index = $velocityCount - 1)
+#if($checkNull)
+   	   if (set.contains("$colNames.get($index)")) {
+#end
+ 	     ${entityObjName}.set$fieldName.substring(0,1).toUpperCase()$fieldName.substring(1)(rs.get${fieldTypes.get($index)}("$colNames.get($index)"));
+#if($checkNull)
+   	   }
+#end
+#end
+       return $entityObjName;
+    }
+}
