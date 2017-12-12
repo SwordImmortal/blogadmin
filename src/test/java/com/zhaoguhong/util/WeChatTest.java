@@ -10,6 +10,12 @@ import com.google.common.collect.Maps;
 import com.zhaoguhong.blog.util.HttpUtil;
 import com.zhaoguhong.blog.util.PropertyUtil;
 
+/**
+ * 微信发送测试
+ * 
+ * @author zhaoguhong
+ * @date 2017年12月12日
+ */
 public class WeChatTest {
   // 一对一
   private static String sendkey = PropertyUtil.getProperty("sendkey");
