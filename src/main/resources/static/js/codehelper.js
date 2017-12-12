@@ -53,7 +53,7 @@ var tools = new Vue({
                     this.newVal += objectName + ".set" + filed.substring(0, 1).toUpperCase() + filed.substring(1) + "(" + filed + ");\n";
                 }
             }
-            String newObj = className + " " + objectName + " = new " + className + "();\n";
+            var newObj = className + " " + objectName + " = new " + className + "();\n";
             this.newVal = newObj + this.newVal;
         },
         // js 格式化
