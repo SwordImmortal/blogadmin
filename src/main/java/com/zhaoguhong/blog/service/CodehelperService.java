@@ -143,7 +143,7 @@ public class CodehelperService {
       entityStr = VelocityUtils.parse("mapper.vm", parameters);
       DbUtil.closeDatabase(conn, null, null);
     } catch (Exception e) {
-      e.printStackTrace();
+      logger.info(e.getMessage());
       return "SQLException,该表或许不存在！";
     }
     return entityStr;
