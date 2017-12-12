@@ -11,19 +11,9 @@ import org.apache.velocity.runtime.RuntimeConstants;
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
 
 public class VelocityUtils {
-
-  /**
-   * 解析动态SQL语句
-   * 
-   * @param sql
-   * @param parameters
-   * @return
-   * @throws Exception
-   */
   public static String parse(String templateName, Map<String, Object> parameters) {
     VelocityContext context = new VelocityContext(parameters);
     StringWriter writer = new StringWriter();
-    VelocityEngine velocityEngine = new VelocityEngine();
     Properties p = new Properties();
     VelocityEngine ve = new VelocityEngine();
     ve.setProperty(RuntimeConstants.RESOURCE_LOADER, "classpath");
@@ -34,8 +24,8 @@ public class VelocityUtils {
       Template template = ve.getTemplate(templateName, "utf-8");
       template.merge(context, writer);
     } catch (Exception e) {
-      e.printStackTrace();
-    } 
+      new RuntimeException("获取模板" + templateName + "失败");
+    }
     return writer.toString();
   }
 }
