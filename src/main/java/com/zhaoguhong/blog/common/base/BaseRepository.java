@@ -4,8 +4,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.NoRepositoryBean;
 
 @NoRepositoryBean
-public interface  BaseRepository<T> extends JpaRepository<T,Long> {
+public interface BaseRepository<T extends BaseEntity> extends JpaRepository<T, Long> {
 
-   void saveEntity(BaseEntity entity);
-  
+  void saveEntity(T entity);
+
+  void updateEntity(T entity);
+
+  void deteleEntity(T entity);
+
 }
