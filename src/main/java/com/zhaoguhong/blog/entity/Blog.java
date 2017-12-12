@@ -7,9 +7,9 @@ import javax.persistence.Id;
 import com.zhaoguhong.blog.common.base.BaseEntity;
 
 /**
- * 
+ * Blog 实体类
  *
- * @author
+ * @author zhaoguhong
  * @date 2017-09-24
  */
 @Entity
@@ -24,12 +24,12 @@ public class Blog extends BaseEntity {
    * 内容
    */
   private String content;
-  
+
   /**
    * 分类
    */
   private Long category;
-  
+
   @Id
   @GeneratedValue
   public Long getId() {

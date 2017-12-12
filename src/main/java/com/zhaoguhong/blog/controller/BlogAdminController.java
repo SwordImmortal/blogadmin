@@ -3,8 +3,6 @@ package com.zhaoguhong.blog.controller;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.text.ParseException;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -13,7 +11,6 @@ import javax.annotation.Resource;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
-import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -49,18 +46,15 @@ public class BlogAdminController {
       result.put("status", false);
       result.put("info", "有必填项为空！");
     }
-    Blog blog = null;
-    if (id == null || id < 0) {
-      blog = new Blog();
-      blog.setCreateDt(new Date());
-    } else {
-      blog = blogDao.getOne(id);
-      blog.setUpdateDt(new Date());
-    }
+    Blog blog = (id == null?new Blog():blogDao.getOne(id));
     blog.setTitle(title);
     blog.setContent(content);
     blog.setCategory(category);
-    blog.setIsDeleted(0);
+    if (id == null) {
+      blogDao.saveEntity(blog);
+    } else {
+      blogDao.updateEntity(blog);
+    }
     blogDao.save(blog);
     result.put("status", true);
     result.put("id", blog.getId());
@@ -71,7 +65,7 @@ public class BlogAdminController {
   public List<Blog> getBlogs(@RequestParam Map<String, Object> map) {
     List<Blog> blogs = blogDao.findAll();
     for (Blog blog : blogs) {
-      blog.setContent(blog.getContent().trim().substring(0, 20).replace("#", ""));
+      blog.setContent(blog.getContent().trim().substring(0, 20).replace("#", "").replace("&emsp;", "").trim());
     }
     return blogs;
   }
@@ -82,7 +76,7 @@ public class BlogAdminController {
   }
 
   @RequestMapping("/generateGitPageBolg")
-  public String generateGitPageBolg(Long id) {
+  public String generateGitPageBolg() {
     List<Blog> blogs = blogDao.findAll();
     blogs.forEach(blog -> {
       String path = "/project/gitpagesblog/source/_posts/" + blog.getTitle() + ".md";
