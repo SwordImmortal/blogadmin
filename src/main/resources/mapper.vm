@@ -2,7 +2,7 @@ public class ${entityName}Mapper  implements RowMapper<$entityName> {
 #if($checkNull)
        private Set<String> set = new HashSet<>();
 #end
-       public BdOrg mapRow(ResultSet rs, int rowNum) throws SQLException {
+       public $entityName mapRow(ResultSet rs, int rowNum) throws SQLException {
 #if($checkNull)
        if(set.isEmpty()){
   	      ResultSetMetaData md = rs.getMetaData();
