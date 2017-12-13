@@ -103,14 +103,11 @@
 				columns : [ {
 					checkbox : true
 				}, {
-					field : "id",
-					title : "ID",
-				}, {
 					field : "title",
-					title : "年龄",
+					title : "标题"
 				}, {
 					field : "content",
-					title : "内容",
+					title : "内容"
 				}, {
 					field : "category",
 					title : "分类",
@@ -119,10 +116,15 @@
 	                }
 				}, {
 					field : "createDt",
-					title : "创建时间",
-				} ],
+					title : "创建时间"
+				}, {
+					field : "updateDt",
+					title : "修改时间"
+				}],
+				height :500,
 				search : true,
 				pagination : true, //是否支持分页
+				pageSize:20,
 				showRefresh : true,
 				showColumns : true,
 		        striped: true, // 是否显示行间隔色  
