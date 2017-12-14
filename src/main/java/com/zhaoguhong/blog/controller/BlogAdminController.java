@@ -52,7 +52,7 @@ public class BlogAdminController {
     blog.setContent(content);
     blog.setCategory(category);
     if (id == null) {
-//      blogDao.saveEntity(blog);
+      // blogDao.saveEntity(blog);
       blog.setCreateDt(new Date());
       blog.setIsDeleted(0);
       blogDao.save(blog);
@@ -68,7 +68,9 @@ public class BlogAdminController {
   public List<Blog> getBlogs(@RequestParam Map<String, Object> map) {
     List<Blog> blogs = blogDao.findAll();
     for (Blog blog : blogs) {
-      blog.setContent(blog.getContent().trim().substring(0, 20).replace("#", "").replace("&emsp;", "").trim());
+      if(blog.getContent().trim().length()>20){
+        blog.setContent(blog.getContent().trim().substring(0, 20).replace("#", "").replace("&emsp;", "").trim());
+      }
     }
     return blogs;
   }
@@ -127,4 +129,5 @@ public class BlogAdminController {
         .of(1, "jdk", 2, "spring", 3, "生活", 4, "数据结构与算法", 5, "技术周边");
     return map.get((Long) id);
   }
+
 }
