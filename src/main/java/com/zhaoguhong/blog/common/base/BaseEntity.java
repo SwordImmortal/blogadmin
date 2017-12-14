@@ -32,6 +32,7 @@ public abstract class BaseEntity implements Serializable {
     this.createDt = createDt;
   }
 
+  @JsonFormat(timezone = "GMT+8", pattern = "yyyy-MM-dd HH:mm:ss")
   public Date getUpdateDt() {
     return updateDt;
   }
@@ -47,4 +48,5 @@ public abstract class BaseEntity implements Serializable {
   public void setIsDeleted(Integer isDeleted) {
     this.isDeleted = isDeleted;
   }
+
 }
