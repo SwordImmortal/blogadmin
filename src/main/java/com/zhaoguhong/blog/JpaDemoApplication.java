@@ -8,6 +8,11 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 
 import com.zhaoguhong.blog.common.base.BaseRepositoryFactoryBean;
 
+/**
+ * 
+ * @author zhaoguhong
+ * @date 2017年12月14日
+ */
 @EnableJpaRepositories(basePackages = {"com.zhaoguhong.blog.*"},
     repositoryFactoryBeanClass = BaseRepositoryFactoryBean.class)
 @SpringBootApplication
