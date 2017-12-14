@@ -3,6 +3,7 @@ package com.zhaoguhong.blog.controller;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -42,20 +43,22 @@ public class BlogAdminController {
     String title = MapUtils.getString(map, "title");
     Long category = MapUtils.getLong(map, "category");
     String content = MapUtils.getString(map, "content");
-    if (StringUtils.isAnyBlank(title,content)) {
+    if (StringUtils.isAnyBlank(title, content)) {
       result.put("status", false);
       result.put("info", "有必填项为空！");
     }
-    Blog blog = (id == null?new Blog():blogDao.getOne(id));
+    Blog blog = (id == null ? new Blog() : blogDao.getOne(id));
     blog.setTitle(title);
     blog.setContent(content);
     blog.setCategory(category);
     if (id == null) {
-      blogDao.saveEntity(blog);
+//      blogDao.saveEntity(blog);
+      blog.setCreateDt(new Date());
+      blog.setIsDeleted(0);
+      blogDao.save(blog);
     } else {
       blogDao.updateEntity(blog);
     }
-    blogDao.save(blog);
     result.put("status", true);
     result.put("id", blog.getId());
     return result;
@@ -121,7 +124,7 @@ public class BlogAdminController {
 
   private String getCategory(Long id) {
     Map<Integer, String> map = ImmutableMap
-        .of(1, "jdk", 2, "spring", 3, "生活", 4, "数据结构与算法",5, "技术周边");
+        .of(1, "jdk", 2, "spring", 3, "生活", 4, "数据结构与算法", 5, "技术周边");
     return map.get((Long) id);
   }
 }
