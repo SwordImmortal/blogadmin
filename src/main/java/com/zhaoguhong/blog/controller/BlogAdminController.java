@@ -14,6 +14,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -37,6 +38,7 @@ public class BlogAdminController {
   }
 
   @RequestMapping("/addBlog")
+  @Transactional
   public Map<String, Object> addBlog(@RequestParam Map<String, Object> map) {
     Map<String, Object> result = Maps.newHashMap();
     Long id = MapUtils.getLong(map, "id");
@@ -52,10 +54,7 @@ public class BlogAdminController {
     blog.setContent(content);
     blog.setCategory(category);
     if (id == null) {
-      // blogDao.saveEntity(blog);
-      blog.setCreateDt(new Date());
-      blog.setIsDeleted(0);
-      blogDao.save(blog);
+      blogDao.saveEntity(blog);
     } else {
       blogDao.updateEntity(blog);
     }
@@ -68,7 +67,7 @@ public class BlogAdminController {
   public List<Blog> getBlogs(@RequestParam Map<String, Object> map) {
     List<Blog> blogs = blogDao.findAll();
     for (Blog blog : blogs) {
-      if(blog.getContent().trim().length()>20){
+      if (blog.getContent().trim().length() > 20) {
         blog.setContent(blog.getContent().trim().substring(0, 20).replace("#", "").replace("&emsp;", "").trim());
       }
     }
