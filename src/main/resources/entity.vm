@@ -34,8 +34,10 @@ import com.hrhelper.hro.framework.entity.BaseEntity;
  * @author
  * @date $date
  */
+#if($hibernateAnnotation)
 @Entity
 @Table(name = "$tableName")
+#end
 public class $entityName#if($baseEntity) extends BaseEntity#end {
 ## 循环生成所有变量
 #foreach ($fieldName in $fieldNames)
