@@ -1,0 +1,110 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>代码小工具</title>
+</head>
+</head>
+<link href="/js/bootstrap.min.css" rel="stylesheet">
+<script src="/js/jquery-2.1.4.min.js"></script>
+<script src="/js/layer/layer.js"></script>
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/vue.js"></script>
+<script src="/js/common.js"></script>
+<style>
+.form-control {
+	font-size: 16px;
+}
+</style>
+<body>
+<div class="container">
+ <br/>
+	<form class="form-horizontal" role="form" >
+		<fieldset id="config">
+			<legend>sql</legend>
+			<div class="form-group">
+				<div class="col-sm-12" >
+					<textarea class="form-control" rows="6" type="text" id="sql"/></textarea>
+				</div>
+			</div>
+			<legend>参数</legend>
+			<div class="form-group">
+				<div class="col-sm-12" >
+					<textarea class="form-control" rows="2" type="text" id="param"/></textarea>
+				</div>
+			</div>
+			<legend><input type="button" value="执行" class="btn btn-primary" id="execute"/></legend>
+			
+			<div class="form-group">
+				<div class="col-sm-12" >
+					<textarea class="form-control" rows="10" type="text" id="result"/></textarea>
+				</div>
+			</div>
+		</fieldset>
+	</form>
+</div>
+<script type="text/javascript" src="/js/codehelper.js?version=<%=System.currentTimeMillis()%>"></script>
+</body>
+<script type="text/javascript">
+$(function(){
+    $("#execute").click(function(){
+    	  var sql = $("#sql").val();
+          var param = $("#param").val();
+    	if(StringUtils.isBlank(sql)){
+    		layer.msg("sql不能为空");
+    		return;
+    	}
+    	if(StringUtils.isBlank(param)){
+    		layer.msg("参数不能为空");
+    		return;
+    	}
+    	if(!sql.includes(":")&&!sql.includes("?")){
+    		layer.msg("sql必须包含冒号或者问号");
+    		return;
+    	}
+    	if(sql.includes(":")&&sql.includes("?")){
+    		layer.msg("sql不能同时包含冒号或者问号");
+    		return;
+    	}
+    	if(StringUtils.isBlank(param)){
+    		layer.msg("参数不能为空");
+    		return;
+    	}
+    	sql+=" ";
+    	// 判断命名参数还是占位符
+    	var isMap = sql.includes(":");
+    	var data = JSON.parse(param); //将json字符串转换成json对象或者数组
+    	if(isMap){
+   		　　for(var key in data){
+   				var value = data[key];
+   				if(StringUtils.isString(value)){
+   					value="'"+value+"'";
+   				}else if(value instanceof Array){
+   					value = value.join(",");
+   				}
+   		    sql=sql.replace(new RegExp(":"+key+" ","gm"), value+" ");
+   		 	sql=sql.replace(new RegExp(":"+key+"[\)]","gm"), value+")");
+   			sql=sql.replace(new RegExp(":"+key+",","gm"),value+",");
+   		　　}
+    	}else{
+    		if(!data instanceof Array){
+    			layer.msg("参数不是json数组");
+        		return;
+    		}
+    		data.forEach(function(item){
+    			if(StringUtils.isString(item)){
+    				item="'"+item+"'";
+   				}
+	   			sql=sql.replace("?", item);
+	        });
+    	}
+    	if(sql.includes(":")||sql.includes("?")){
+    		layer.msg("有参数未赋值");
+    	}
+    	$("#result").val(sql);
+    });
+});
+</script>
+</html>
