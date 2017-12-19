@@ -3,7 +3,6 @@ package com.zhaoguhong.blog.controller;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -24,6 +23,12 @@ import com.google.common.collect.Maps;
 import com.zhaoguhong.blog.dao.BlogDao;
 import com.zhaoguhong.blog.entity.Blog;
 
+/**
+ * 博客管理Controller
+ * 
+ * @author zhaoguhong
+ * @date 2017年12月15日
+ */
 @RestController
 @RequestMapping("/admin")
 public class BlogAdminController {
@@ -48,6 +53,7 @@ public class BlogAdminController {
     if (StringUtils.isAnyBlank(title, content)) {
       result.put("status", false);
       result.put("info", "有必填项为空！");
+      return result;
     }
     Blog blog = (id == null ? new Blog() : blogDao.getOne(id));
     blog.setTitle(title);
@@ -67,7 +73,7 @@ public class BlogAdminController {
   public List<Blog> getBlogs(@RequestParam Map<String, Object> map) {
     List<Blog> blogs = blogDao.findAll();
     for (Blog blog : blogs) {
-      if (blog.getContent().trim().length() > 20) {
+      if (blog.getContent() != null && blog.getContent().trim().length() > 20) {
         blog.setContent(blog.getContent().trim().substring(0, 20).replace("#", "").replace("&emsp;", "").trim());
       }
     }
@@ -104,14 +110,13 @@ public class BlogAdminController {
             .append("tags: " + getCategory(blog.getCategory()) + "\n")
             .append("---\n\n").append(blog.getContent());
         fileWriter.write(content.toString());
-        fileWriter.close(); // 关闭数据流
       } catch (IOException e) {
         logger.error("写入文件{}失败", blog.getTitle());
         return;
       } finally {
         if (fileWriter != null) {
           try {
-            fileWriter.close();
+            fileWriter.close(); // 关闭数据流
           } catch (IOException e) {
             logger.error("写入文件{},IO流关闭异常", blog.getTitle());
             return;
