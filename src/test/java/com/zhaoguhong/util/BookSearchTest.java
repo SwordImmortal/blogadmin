@@ -40,6 +40,7 @@ public class BookSearchTest {
     bookName = "%22" + bookName + "%22";// 精确匹配
     bookName += "&action[addexpander][]=fulltext";
     String content = HttpUtil.getString(url + bookName);
+    // 正则 ^< 排除<
     List<String> bookUrls = RegularUtil.find(content, "<a href=\"([^<]*)\" target='_blank'>详细信息</a>");
     System.out.println("爬取首页完毕，共" + bookUrls.size() + "本书");
     // 核心线程池大小 线程池最大容量大小 线程池空闲时，线程存活的时间 时间单位 任务队列
