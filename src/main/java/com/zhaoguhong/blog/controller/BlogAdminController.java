@@ -3,6 +3,7 @@ package com.zhaoguhong.blog.controller;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -21,7 +22,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.zhaoguhong.blog.dao.BlogDao;
+import com.zhaoguhong.blog.dao.CategoryDao;
 import com.zhaoguhong.blog.entity.Blog;
+import com.zhaoguhong.blog.entity.Category;
 
 /**
  * 博客管理Controller
@@ -34,7 +37,12 @@ import com.zhaoguhong.blog.entity.Blog;
 public class BlogAdminController {
   @Resource
   private BlogDao blogDao;
+  @Resource
+  private CategoryDao categoryDao;
+  
   private Logger logger = LoggerFactory.getLogger(getClass());
+  
+  private Map<Long, String> categorys =Collections.synchronizedMap(Maps.newHashMap());
 
   @RequestMapping("/test")
   public String index() {
@@ -127,11 +135,15 @@ public class BlogAdminController {
     });
     return "success";
   }
-
-  private String getCategory(Long id) {
-    Map<Integer, String> map = ImmutableMap
-        .of(1, "jdk", 2, "spring", 3, "生活", 4, "数据结构与算法", 5, "技术周边");
-    return map.get((Long) id);
+  
+  public String getCategory(Long id) {
+    if(categorys.isEmpty()){
+      List<Category> categoryList = categoryDao.findAll();
+      categoryList.forEach(category -> {
+        categorys.put(category.getId(), category.getName());
+      });
+    }
+    return categorys.get(id);
   }
 
 }
