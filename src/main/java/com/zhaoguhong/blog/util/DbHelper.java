@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import com.google.common.collect.Lists;
@@ -139,7 +140,8 @@ public class DbHelper {
       stmt = conn.createStatement();
       rs = stmt.executeQuery("show full columns from " + tableName);
       while (rs.next()) {
-        commentList.add(rs.getString("Comment").replaceAll("\"", "'"));
+        // 替换掉注释中的双引号，避免生成实体类时，在注解里面造成语法错误
+        commentList.add(rs.getString("Comment").replace("\"", "'"));
       }
     } catch (SQLException e) {
       throw new RuntimeException("数据库链接异常");
@@ -185,5 +187,24 @@ public class DbHelper {
     return "";
   }
 
+  /**
+   * 生成markdown 文档
+   * 
+   * @param parameters
+   */
+  public String getMarkDown(String tableName) {
+    List<String> colNames = getColNames(tableName);
+    List<String> fieldNames = getFieldNames(tableName);
+    List<String> comments = getComments(tableName);
+    StringBuilder sb = new StringBuilder();
+    sb.append("| 参数\t| 参数描述\t| 数据类型\t|\n");
+    sb.append("|\t----\t|\t----\t|\t----\t|\n");
+    for (int i = 0; i < colNames.size(); i++) {
+      sb.append("|\t " + colNames.get(i) + "\t|\t "
+          + comments.get(i) + "\t|\t " + fieldNames.get(i)
+          + "\t|\n");
+    }
+    return sb.toString();
+  }
 
 }

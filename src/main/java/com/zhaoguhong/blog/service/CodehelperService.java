@@ -115,6 +115,8 @@ public class CodehelperService {
         sql.append(" -- " + StringUtils.defaultIfBlank(comments.get(i), colNames.get(i)) + "\r\n");
       }
       sql.append(");");
+      sql.append("\n\n-- markdown\n\n");
+      sql.append(dbHelper.getMarkDown(tableName));
     } catch (Exception e) {
       e.printStackTrace();
       return "SQLException,该表或许不存在！";
