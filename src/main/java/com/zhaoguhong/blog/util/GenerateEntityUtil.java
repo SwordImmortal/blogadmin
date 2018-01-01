@@ -99,22 +99,4 @@ public class GenerateEntityUtil {
     }
   }
 
-  /**
-   * 生成markdown 文档
-   * 
-   * @param parameters
-   */
-  private void getMarkDown(Map<String, Object> parameters) {
-    List<String> colNames = (List<String>) parameters.get("colNames");
-    List<String> fieldNames = (List<String>) parameters.get("fieldNames");
-    List<String> comments = (List<String>) parameters.get("comments");
-    System.out.println("| 字段\t| 类型\t| 含义\t|");
-    System.out.println("| :----:\t| :----:\t| :----:\t|");
-    for (int i = 0; i < colNames.size(); i++) {
-      System.out.println("| " + colNames.get(i) + "\t| "
-          + (fieldNames.get(i).equals("Integer") ? "int" : fieldNames.get(i)) + "\t| " + comments.get(i)
-          + "\t|");
-    }
-  }
-
 }
