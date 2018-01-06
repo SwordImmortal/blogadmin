@@ -131,6 +131,7 @@ public class HttpUtil {
     // 获取Response对象的Entity
     HttpEntity entity = response.getEntity();
     if (entity != null) {
+
       // 响应内容
       String content = EntityUtils.toString(entity, "utf-8");
       Map<String, Object> map = JSONUtil.toMap(content);
