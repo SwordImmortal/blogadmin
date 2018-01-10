@@ -82,7 +82,7 @@ public class DbUtil {
    */
   public static String sqlType2JavaType(String sqlType) {
     if (sqlType.equalsIgnoreCase("bit")) {
-      return "boolean";
+      return "Boolean";
     } else if (sqlType.equalsIgnoreCase("tinyint")) {
       return "byte";
     } else if (sqlType.equalsIgnoreCase("smallint")) {
