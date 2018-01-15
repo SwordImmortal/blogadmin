@@ -9,7 +9,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 import com.google.common.collect.Lists;
@@ -34,18 +33,24 @@ public class DbHelper {
    * @return
    */
   public String getPrimary(String tableName) {
-    String primaryName = null;
+    String firstPrimaryName = null;
     try {
-      // 获取主键
       DatabaseMetaData dbMetaData = conn.getMetaData();
       ResultSet pkRSet = dbMetaData.getPrimaryKeys(null, null, tableName);
       while (pkRSet.next()) {
-        primaryName = Objects.toString(pkRSet.getObject(4));
+        String primaryName = Objects.toString(pkRSet.getObject(4), "");
+        if (firstPrimaryName == null) {
+          firstPrimaryName = primaryName;
+        }
+        // 有可能有联合主键，取包含ID的
+        if (primaryName.toUpperCase().contains("ID")) {
+          return primaryName;
+        }
       }
     } catch (SQLException e) {
-      e.printStackTrace();
+      throw new RuntimeException(e);
     }
-    return primaryName;
+    return firstPrimaryName;
   }
 
   /**
@@ -59,15 +64,14 @@ public class DbHelper {
     String strsql = "select * from " + tableName;
     PreparedStatement pstmt = null;
     try {
-      // 获取主键
       pstmt = conn.prepareStatement(strsql);
       ResultSetMetaData rsmd = pstmt.getMetaData();
-      int size = rsmd.getColumnCount(); // 共有多少列
-      for (int i = 0; i < size; i++) {
-        colNames.add(rsmd.getColumnName(i + 1));
+      int size = rsmd.getColumnCount();
+      for (int i = 1; i <= size; i++) {
+        colNames.add(rsmd.getColumnName(i));
       }
     } catch (SQLException e) {
-      e.printStackTrace();
+      throw new RuntimeException(e);
     }
     return colNames;
   }
@@ -98,15 +102,14 @@ public class DbHelper {
     String strsql = "select * from " + tableName;
     PreparedStatement pstmt = null;
     try {
-      // 获取主键
       pstmt = conn.prepareStatement(strsql);
       ResultSetMetaData rsmd = pstmt.getMetaData();
-      int size = rsmd.getColumnCount(); // 共有多少列
-      for (int i = 0; i < size; i++) {
-        colTypes.add(rsmd.getColumnTypeName(i + 1));
+      int size = rsmd.getColumnCount();
+      for (int i = 1; i <= size; i++) {
+        colTypes.add(rsmd.getColumnTypeName(i));
       }
     } catch (SQLException e) {
-      e.printStackTrace();
+      throw new RuntimeException(e);
     }
     return colTypes;
   }
@@ -207,4 +210,7 @@ public class DbHelper {
     return sb.toString();
   }
 
+  public void close() {
+    DbUtil.closeDatabase(conn, null, null);
+  }
 }

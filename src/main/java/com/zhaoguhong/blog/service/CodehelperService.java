@@ -42,9 +42,9 @@ public class CodehelperService {
    * @return
    */
   @Transactional
-  public String getSelectSql(String tableName, String dataSourceName) {
+  public String getSelectSql(String tableName) {
     StringBuilder sql = new StringBuilder();
-    Connection conn = DbUtil.openConnection(dataSourceName); // 得到数据库连接
+    Connection conn = DbUtil.openConnection(); // 得到数据库连接
     DbHelper dbHelper = new DbHelper(conn);
     List<String> colNames = dbHelper.getColNames(tableName);// 列名
     List<String> fieldNames = dbHelper.getFieldNames(tableName);// 字段名
@@ -126,11 +126,11 @@ public class CodehelperService {
     return sql.toString();
   }
 
-  public String getMapper(String tableName, String dataSourceName, boolean checkNull) {
+  public String getMapper(String tableName, boolean checkNull) {
     String entityStr = "";
     String strsql = "select * from " + tableName;
     PreparedStatement pstmt = null;
-    Connection conn = DbUtil.openConnection(dataSourceName); // 得到数据库连接
+    Connection conn = DbUtil.openConnection(); // 得到数据库连接
     DbHelper dbHelper = new DbHelper(conn);
     try {
       Map<String, Object> parameters = Maps.newHashMap();

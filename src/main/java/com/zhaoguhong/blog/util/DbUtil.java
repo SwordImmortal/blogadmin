@@ -18,7 +18,8 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class DbUtil {
 
-  public static Connection openConnection(String dataSourceName) {
+  public static Connection openConnection() {
+    String dataSourceName = "hr";
     String url = "url";
     String username = "username";
     String password = "password";
@@ -31,13 +32,11 @@ public class DbUtil {
       // 如果在公司
       if ((hostAddress.contains("172.16.")
           || hostAddress.startsWith("10.")
-          || hostAddress.startsWith("192.168."))
-          && StringUtils.isNotBlank(dataSourceName)) {
+          || hostAddress.startsWith("192.168."))) {
         url = dataSourceName + "." + url;
         username = dataSourceName + "." + username;
         password = dataSourceName + "." + password;
       }
-      // Class.forName(PropertyUtil.getProperty("driver"));
       con = DriverManager.getConnection(
           PropertyUtil.getProperty(url),
           PropertyUtil.getProperty(username),

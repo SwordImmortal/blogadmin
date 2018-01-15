@@ -41,16 +41,16 @@ public class CodehelperController {
    * 根据表名获得select SQl
    */
   @RequestMapping("/getSelectSql")
-  public String getSelectSql(String tableName, String dataSourceName) {
-    return codehelperService.getSelectSql(tableName, dataSourceName);
+  public String getSelectSql(String tableName) {
+    return codehelperService.getSelectSql(tableName);
   }
 
   /**
    * 根据表名获得Mapper
    */
   @RequestMapping("/getMapper")
-  public String getMapper(String tableName, String dataSourceName, boolean checkNull) {
-    return codehelperService.getMapper(tableName, dataSourceName, checkNull);
+  public String getMapper(String tableName, boolean checkNull) {
+    return codehelperService.getMapper(tableName, checkNull);
   }
 
   /**

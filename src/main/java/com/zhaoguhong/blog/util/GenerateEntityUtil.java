@@ -25,7 +25,6 @@ import com.google.common.collect.Sets;
  */
 public class GenerateEntityUtil {
   private static Set<String> baseEntityfields = Sets.newHashSet();
-  private String dataSourceName = null; // 数据源
   private String packagePath = null;// 生成代码包路径
   static {
     baseEntityfields.add("IS_DELETED");
@@ -43,8 +42,7 @@ public class GenerateEntityUtil {
 
   public String generateEntity(Map<String, Object> map) {
     String tableName = MapUtils.getString(map, "tableName").replace("'", "");
-    dataSourceName = MapUtils.getString(map, "dataSourceName");
-    Connection conn = DbUtil.openConnection(dataSourceName); // 得到数据库连接
+    Connection conn = DbUtil.openConnection(); // 得到数据库连接
     DbHelper dbHelper = new DbHelper(conn);
     boolean baseEntity = MapUtils.getBooleanValue(map, "baseEntity");
     if (baseEntity) {
@@ -67,9 +65,8 @@ public class GenerateEntityUtil {
     parameters.put("tableNameComment", dbHelper.getTableComment(tableName));// 表注释
     parameters.put("date", DateFormatUtils.ISO_DATE_FORMAT.format(new Date()));// 当前时间
     parameters.put("baseEntityfields", baseEntityfields);// baseEntityfields
-
+    dbHelper.close();
     String entityStr = VelocityUtils.parse("entity.vm", parameters);
-    DbUtil.closeDatabase(conn, null, null);
     if (packagePath != null) {
       this.GenerateFile(packagePath, MapUtils.getString(parameters, "entityName"), entityStr);
     }
