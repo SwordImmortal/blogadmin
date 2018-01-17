@@ -6,6 +6,9 @@ import javax.persistence.Id;
 
 import com.zhaoguhong.blog.common.base.BaseEntity;
 
+import lombok.Builder;
+import lombok.Data;
+
 /**
  * 分类
  * 
@@ -13,6 +16,8 @@ import com.zhaoguhong.blog.common.base.BaseEntity;
  * @date 2017年12月12日
  */
 @Entity
+@Data
+@Builder
 public class Category extends BaseEntity {
   
   private Long id;
@@ -36,5 +41,6 @@ public class Category extends BaseEntity {
   public String toString() {
     return "Category [id=" + id + ", name=" + name + "]";
   }
+  
 
 }

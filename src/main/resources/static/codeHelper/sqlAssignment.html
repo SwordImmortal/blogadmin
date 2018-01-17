@@ -1,0 +1,50 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>代码小工具</title>
+</head>
+</head>
+<link href="/js/bootstrap.min.css" rel="stylesheet">
+<script src="/js/jquery-2.1.4.min.js"></script>
+<script src="/js/layer/layer.js"></script>
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/vue.js"></script>
+<script src="/js/common.js"></script>
+<script src="/js/codehelper/sqlAssignment.js"></script>
+<style>
+.form-control {
+	font-size: 16px;
+}
+</style>
+<body>
+<div class="container">
+ <br/>
+	<form class="form-horizontal" role="form" >
+		<fieldset id="config">
+			<legend>sql	支持命名参数，占位符</legend>
+			<div class="form-group">
+				<div class="col-sm-12" >
+					<textarea class="form-control" rows="6" type="text" id="sql"/></textarea>
+				</div>
+			</div>
+			<legend>参数，支持json，逗号分隔参数，mybatis 日志参数</legend>
+			<div class="form-group">
+				<div class="col-sm-12" >
+					<textarea class="form-control" rows="2" type="text" id="param"/></textarea>
+				</div>
+			</div>
+			<legend><input type="button" value="执行" class="btn btn-primary" id="execute"/></legend>
+			
+			<div class="form-group">
+				<div class="col-sm-12" >
+					<textarea class="form-control" rows="10" type="text" id="result"/></textarea>
+				</div>
+			</div>
+		</fieldset>
+	</form>
+</div>
+</body>
+</html>

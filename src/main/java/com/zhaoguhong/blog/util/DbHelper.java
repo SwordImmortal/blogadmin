@@ -33,18 +33,24 @@ public class DbHelper {
    * @return
    */
   public String getPrimary(String tableName) {
-    String primaryName = null;
+    String firstPrimaryName = null;
     try {
-      // 获取主键
       DatabaseMetaData dbMetaData = conn.getMetaData();
       ResultSet pkRSet = dbMetaData.getPrimaryKeys(null, null, tableName);
       while (pkRSet.next()) {
-        primaryName = Objects.toString(pkRSet.getObject(4));
+        String primaryName = Objects.toString(pkRSet.getObject(4), "");
+        if (firstPrimaryName == null) {
+          firstPrimaryName = primaryName;
+        }
+        // 有可能有联合主键，取包含ID的
+        if (primaryName.toUpperCase().contains("ID")) {
+          return primaryName;
+        }
       }
     } catch (SQLException e) {
-      e.printStackTrace();
+      throw new RuntimeException(e);
     }
-    return primaryName;
+    return firstPrimaryName;
   }
 
   /**
@@ -58,15 +64,14 @@ public class DbHelper {
     String strsql = "select * from " + tableName;
     PreparedStatement pstmt = null;
     try {
-      // 获取主键
       pstmt = conn.prepareStatement(strsql);
       ResultSetMetaData rsmd = pstmt.getMetaData();
-      int size = rsmd.getColumnCount(); // 共有多少列
-      for (int i = 0; i < size; i++) {
-        colNames.add(rsmd.getColumnName(i + 1));
+      int size = rsmd.getColumnCount();
+      for (int i = 1; i <= size; i++) {
+        colNames.add(rsmd.getColumnName(i));
       }
     } catch (SQLException e) {
-      e.printStackTrace();
+      throw new RuntimeException(e);
     }
     return colNames;
   }
@@ -97,15 +102,14 @@ public class DbHelper {
     String strsql = "select * from " + tableName;
     PreparedStatement pstmt = null;
     try {
-      // 获取主键
       pstmt = conn.prepareStatement(strsql);
       ResultSetMetaData rsmd = pstmt.getMetaData();
-      int size = rsmd.getColumnCount(); // 共有多少列
-      for (int i = 0; i < size; i++) {
-        colTypes.add(rsmd.getColumnTypeName(i + 1));
+      int size = rsmd.getColumnCount();
+      for (int i = 1; i <= size; i++) {
+        colTypes.add(rsmd.getColumnTypeName(i));
       }
     } catch (SQLException e) {
-      e.printStackTrace();
+      throw new RuntimeException(e);
     }
     return colTypes;
   }
@@ -139,7 +143,8 @@ public class DbHelper {
       stmt = conn.createStatement();
       rs = stmt.executeQuery("show full columns from " + tableName);
       while (rs.next()) {
-        commentList.add(rs.getString("Comment").replaceAll("\"", "'"));
+        // 替换掉注释中的双引号，避免生成实体类时，在注解里面造成语法错误
+        commentList.add(rs.getString("Comment").replace("\"", "'"));
       }
     } catch (SQLException e) {
       throw new RuntimeException("数据库链接异常");
@@ -185,5 +190,27 @@ public class DbHelper {
     return "";
   }
 
+  /**
+   * 生成markdown 文档
+   * 
+   * @param parameters
+   */
+  public String getMarkDown(String tableName) {
+    List<String> colNames = getColNames(tableName);
+    List<String> fieldNames = getFieldNames(tableName);
+    List<String> comments = getComments(tableName);
+    StringBuilder sb = new StringBuilder();
+    sb.append("| 参数\t| 参数描述\t| 数据类型\t|\n");
+    sb.append("|\t----\t|\t----\t|\t----\t|\n");
+    for (int i = 0; i < colNames.size(); i++) {
+      sb.append("|\t " + colNames.get(i) + "\t|\t "
+          + comments.get(i) + "\t|\t " + fieldNames.get(i)
+          + "\t|\n");
+    }
+    return sb.toString();
+  }
 
+  public void close() {
+    DbUtil.closeDatabase(conn, null, null);
+  }
 }

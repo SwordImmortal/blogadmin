@@ -1,9 +1,12 @@
 var StringUtils = {
-	isBlank : function isBlank(str) {
+	isBlank : function(str) {
 		return !str || str.trim().length == 0;
 	},
-	isNotBlank : function isNotBlank(str) {
+	isNotBlank : function(str) {
 		return str && str.trim().length != 0;
+	},
+	isString : function(obj) { // 判断对象是否是字符串
+		return Object.prototype.toString.call(obj) === "[object String]";
 	}
 }
 var ArrayUtils = {
@@ -41,7 +44,7 @@ var request = {
 			success : function(result) {
 				callback ? callback(result) : $("#newVal").val(result);
 			},
-			error:function() {
+			error : function() {
 				layer.msg("服务器内部错误！");
 			}
 		});

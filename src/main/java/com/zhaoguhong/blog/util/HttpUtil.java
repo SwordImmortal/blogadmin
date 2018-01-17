@@ -38,9 +38,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class HttpUtil {
 
   public static String getString(String url) {
-    return getString(url,null);
+    return getString(url, null);
   }
 
+  /**
+   * get请求，返回String
+   */
   public static String getString(String url, Map<String, Object> params) {
     if (MapUtils.isNotEmpty(params)) {
       // 构建request参数
@@ -64,7 +67,7 @@ public class HttpUtil {
     }
     return result;
   }
-  
+
   public static Map<String, Object> postMap(String url, Map<String, Object> params) {
     List<NameValuePair> formparams = new ArrayList<NameValuePair>();
     if (MapUtils.isNotEmpty(params)) {
@@ -76,7 +79,7 @@ public class HttpUtil {
     try {
       entityParams = new UrlEncodedFormEntity(formparams, "UTF-8");
     } catch (UnsupportedEncodingException e) {
-      e.printStackTrace();
+      throw new RuntimeException(e);
     }
     HttpPost httpPost = new HttpPost(url);
     httpPost.setEntity(entityParams);
