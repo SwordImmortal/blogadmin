@@ -147,6 +147,12 @@
 			<version>2.0</version>
 		</dependency>
 
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>1.16.14</version>
+		</dependency>
+
 		<!-- hutool 工具包 jar -->
 		<dependency>
 			<groupId>com.xiaoleilu</groupId>
