@@ -91,7 +91,7 @@
 	<script src="js/plugins/iCheck/icheck.min.js"></script>
 
 	<script src="js/plugins/layer/layer.min.js"></script>
-	<script src="js/common.js"></script>
+	<script src="/js/common.js"></script>
 	<script src="js/vue.js"></script>
 	<script>
 	function getQueryString(name) {
@@ -133,7 +133,7 @@
 			},
 			methods : {
 				add : function() {
-					request.post("/admin/addBlog", {
+					request.post("/admin/updateBlog", {
 						id : this.id,
 						title : this.title,
 						content : this.content,

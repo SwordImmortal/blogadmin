@@ -4,11 +4,31 @@ var StringUtils = {
 	},
 	isNotBlank : function(str) {
 		return str && str.trim().length != 0;
-	},
-	isString : function(obj) { // 判断对象是否是字符串
-		return Object.prototype.toString.call(obj) === "[object String]";
 	}
+};
+
+// 判断字符串是否是json
+function isJSON(str) {
+	if (typeof str == 'string' && (str.includes("{") || str.includes("["))) {
+		try {
+			var obj = JSON.parse(str);
+			return true;
+		} catch (e) {
+		}
+	}
+	return false;
 }
+
+//判断对象是否是数组
+function isArray(str) {
+	return str instanceof Array;
+}
+
+//判断对象是否是字符串
+function isString(obj) { 
+	return Object.prototype.toString.call(obj) === "[object String]";
+}
+
 var ArrayUtils = {
 	// 判断数组是否有重复
 	isRepeat : function(arr) {
@@ -57,6 +77,22 @@ var request = {
 			data : data,
 			success : function(result) {
 				callback ? callback(result) : $("#newVal").val(result);
+			}
+		});
+	},
+	post : function ajaxback(url, data, callback) {
+		$.ajax({
+			type : "post",
+			dataType : "json",
+			url : url,
+			data : data,
+			success : function(result) {
+				if(callback){
+					callback(result);
+				}
+			},
+			error:function() {
+				layer.msg("服务器内部错误！");
 			}
 		});
 	}

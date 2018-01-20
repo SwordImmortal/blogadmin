@@ -3,13 +3,16 @@ package com.zhaoguhong.blog.controller;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Resource;
 
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.slf4j.Logger;
@@ -19,12 +22,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.google.common.collect.ImmutableMap;
+import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
 import com.zhaoguhong.blog.dao.BlogDao;
 import com.zhaoguhong.blog.dao.CategoryDao;
 import com.zhaoguhong.blog.entity.Blog;
 import com.zhaoguhong.blog.entity.Category;
+import com.zhaoguhong.blog.util.Common;
 
 /**
  * 博客管理Controller
@@ -39,10 +43,10 @@ public class BlogAdminController {
   private BlogDao blogDao;
   @Resource
   private CategoryDao categoryDao;
-  
+
   private Logger logger = LoggerFactory.getLogger(getClass());
-  
-  private Map<Long, String> categorys =Collections.synchronizedMap(Maps.newHashMap());
+
+  private Map<Long, String> categorys = Collections.synchronizedMap(Maps.newHashMap());
 
   @RequestMapping("/test")
   public String index() {
@@ -50,14 +54,23 @@ public class BlogAdminController {
     return "index";
   }
 
-  @RequestMapping("/addBlog")
+  @RequestMapping("/updateBlog")
   @Transactional
-  public Map<String, Object> addBlog(@RequestParam Map<String, Object> map) {
+  public Map<String, Object> updateBlog(@RequestParam Map<String, Object> map) {
     Map<String, Object> result = Maps.newHashMap();
+    result.put("status", true);
     Long id = MapUtils.getLong(map, "id");
     String title = MapUtils.getString(map, "title");
     Long category = MapUtils.getLong(map, "category");
     String content = MapUtils.getString(map, "content");
+    Integer isDeleted = MapUtils.getInteger(map, "isDeleted");
+    if (Objects.equal(isDeleted, 1)) {
+      String ids = MapUtils.getString(map, "ids");
+      if (StringUtils.isNotBlank(ids)) {
+        Common.spiltStrToLongList(ids).forEach(delId -> blogDao.deteleEntity(blogDao.getOne(delId)));
+      }
+      return result;
+    }
     if (StringUtils.isAnyBlank(title, content)) {
       result.put("status", false);
       result.put("info", "有必填项为空！");
@@ -72,7 +85,6 @@ public class BlogAdminController {
     } else {
       blogDao.updateEntity(blog);
     }
-    result.put("status", true);
     result.put("id", blog.getId());
     return result;
   }
@@ -80,7 +92,12 @@ public class BlogAdminController {
   @RequestMapping("/getBlogs")
   public List<Blog> getBlogs(@RequestParam Map<String, Object> map) {
     List<Blog> blogs = blogDao.findAll();
-    for (Blog blog : blogs) {
+    for (Iterator<Blog> iterator = blogs.iterator(); iterator.hasNext();) {
+      Blog blog = iterator.next();
+      if (blog.getIsDeleted() == 1) {
+        iterator.remove();
+        continue;
+      }
       if (blog.getContent() != null && blog.getContent().trim().length() > 20) {
         blog.setContent(blog.getContent().trim().substring(0, 20).replace("#", "").replace("&emsp;", "").trim());
       }
@@ -96,7 +113,16 @@ public class BlogAdminController {
   @RequestMapping("/generateGitPageBolg")
   public String generateGitPageBolg() {
     List<Blog> blogs = blogDao.findAll();
+    File rootDirectory = new File("/project/gitpagesblog/source/_posts/");
+    File[] files = rootDirectory.listFiles();
+    for (File file : files) {
+      file.delete();
+      logger.error("删除文件{}", file.getName());
+    }
     blogs.forEach(blog -> {
+      if(blog.getIsDeleted()==1){
+        return;
+      }
       String path = "/project/gitpagesblog/source/_posts/" + blog.getTitle() + ".md";
       File file = new File(path);
       if (!file.exists()) {
@@ -123,25 +149,17 @@ public class BlogAdminController {
         return;
       } finally {
         if (fileWriter != null) {
-          try {
-            fileWriter.close(); // 关闭数据流
-          } catch (IOException e) {
-            logger.error("写入文件{},IO流关闭异常", blog.getTitle());
-            return;
-          }
+          IOUtils.closeQuietly(fileWriter);// 关闭数据流
         }
       }
-      logger.info("更新文件{}内容成功", blog.getTitle());
     });
     return "success";
   }
-  
+
   public String getCategory(Long id) {
-    if(categorys.isEmpty()){
+    if (categorys.isEmpty()) {
       List<Category> categoryList = categoryDao.findAll();
-      categoryList.forEach(category -> {
-        categorys.put(category.getId(), category.getName());
-      });
+      categoryList.forEach(category -> categorys.put(category.getId(), category.getName()));
     }
     return categorys.get(id);
   }
