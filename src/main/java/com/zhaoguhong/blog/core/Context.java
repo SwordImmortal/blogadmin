@@ -25,7 +25,7 @@ public class Context implements ApplicationContextAware {
   public static ApplicationContext getApplicationContext() {
     return applicationContext;
   }
-  
+
   @Override
   public void setApplicationContext(ApplicationContext context) {
     Assert.notNull(context, "WebApplicationContext can not be null");
@@ -36,6 +36,7 @@ public class Context implements ApplicationContextAware {
   public static <T> T getBean(String beanId) {
     return (T) applicationContext.getBean(beanId);
   }
+
   public static Session getHibernateSession() {
     return hibernateSessionThreadLocal.get();
   }
@@ -44,17 +45,11 @@ public class Context implements ApplicationContextAware {
     hibernateSessionThreadLocal.set(session);
   }
 
-  public static ThreadLocal<Session> getHibernateSessionThreadLocal() {
-    return hibernateSessionThreadLocal;
-  }
-
   public static void closeHibernateSession() {
     Session session = hibernateSessionThreadLocal.get();
-    if (session != null) {
-      if (session.isOpen()) {
-        session.flush();
-        session.close();
-      }
+    if (session != null && session.isOpen()) {
+      session.flush();
+      session.close();
     }
     hibernateSessionThreadLocal.remove();
   }

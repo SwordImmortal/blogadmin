@@ -3,7 +3,6 @@ package com.zhaoguhong.blog.controller;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -24,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
+import com.zhaoguhong.blog.core.dao.HibernateDao;
 import com.zhaoguhong.blog.dao.BlogDao;
 import com.zhaoguhong.blog.dao.CategoryDao;
 import com.zhaoguhong.blog.entity.Blog;
@@ -31,7 +31,7 @@ import com.zhaoguhong.blog.entity.Category;
 import com.zhaoguhong.blog.util.Common;
 
 /**
- * 博客管理Controller
+ * 博客管理 Controller
  * 
  * @author zhaoguhong
  * @date 2017年12月15日
@@ -42,10 +42,10 @@ public class BlogAdminController {
   @Resource
   private BlogDao blogDao;
   @Resource
+  private HibernateDao hiDao;
+  @Resource
   private CategoryDao categoryDao;
-
   private Logger logger = LoggerFactory.getLogger(getClass());
-
   private Map<Long, String> categorys = Collections.synchronizedMap(Maps.newHashMap());
 
   @RequestMapping("/test")
@@ -91,13 +91,8 @@ public class BlogAdminController {
 
   @RequestMapping("/getBlogs")
   public List<Blog> getBlogs(@RequestParam Map<String, Object> map) {
-    List<Blog> blogs = blogDao.findAll();
-    for (Iterator<Blog> iterator = blogs.iterator(); iterator.hasNext();) {
-      Blog blog = iterator.next();
-      if (blog.getIsDeleted() == 1) {
-        iterator.remove();
-        continue;
-      }
+    List<Blog> blogs = hiDao.findAll(Blog.class);
+    for (Blog blog : blogs) {
       if (blog.getContent() != null && blog.getContent().trim().length() > 20) {
         blog.setContent(blog.getContent().trim().substring(0, 20).replace("#", "").replace("&emsp;", "").trim());
       }
@@ -112,7 +107,7 @@ public class BlogAdminController {
 
   @RequestMapping("/generateGitPageBolg")
   public String generateGitPageBolg() {
-    List<Blog> blogs = blogDao.findAll();
+    List<Blog> blogs = hiDao.findAll(Blog.class);
     File rootDirectory = new File("/project/gitpagesblog/source/_posts/");
     File[] files = rootDirectory.listFiles();
     for (File file : files) {
@@ -120,9 +115,6 @@ public class BlogAdminController {
       logger.error("删除文件{}", file.getName());
     }
     blogs.forEach(blog -> {
-      if(blog.getIsDeleted()==1){
-        return;
-      }
       String path = "/project/gitpagesblog/source/_posts/" + blog.getTitle() + ".md";
       File file = new File(path);
       if (!file.exists()) {
@@ -148,9 +140,7 @@ public class BlogAdminController {
         logger.error("写入文件{}失败", blog.getTitle());
         return;
       } finally {
-        if (fileWriter != null) {
-          IOUtils.closeQuietly(fileWriter);// 关闭数据流
-        }
+        IOUtils.closeQuietly(fileWriter);// 关闭数据流
       }
     });
     return "success";
@@ -158,7 +148,7 @@ public class BlogAdminController {
 
   public String getCategory(Long id) {
     if (categorys.isEmpty()) {
-      List<Category> categoryList = categoryDao.findAll();
+      List<Category> categoryList = hiDao.findAll(Category.class);
       categoryList.forEach(category -> categorys.put(category.getId(), category.getName()));
     }
     return categorys.get(id);

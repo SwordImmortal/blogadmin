@@ -2,13 +2,19 @@ package com.zhaoguhong.blog.common.base;
 
 import java.util.List;
 
-public class Page<T>{
+/**
+ * 分页
+ * 
+ * @author zhaoguhong
+ * @date 2018年1月21日
+ */
+public class Page<T> {
   private int pageNo;// 第几页
   private int pageSize;// 页宽
   private int pageCount;// 一共的页数
   private int entityCount;// 对象总数
 
-  private List<T> entityList;//查询出来的对象实体
+  private List<T> entityList;// 查询出来的对象实体
 
   public Page() {
     pageSize = 20;
@@ -69,7 +75,8 @@ public class Page<T>{
 
   @Override
   public String toString() {
-    return "Page [pageNo=" + pageNo + ", pageSize=" + pageSize + ", pageCount=" + pageCount + ", entityCount=" + entityCount + ", entityList="
+    return "Page [pageNo=" + pageNo + ", pageSize=" + pageSize + ", pageCount=" + pageCount + ", entityCount="
+        + entityCount + ", entityList="
         + entityList + "]";
   }
 
