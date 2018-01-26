@@ -52,6 +52,14 @@ public class CodehelperController {
   public String getMapper(String tableName, boolean checkNull) {
     return codehelperService.getMapper(tableName, checkNull);
   }
+  
+  /**
+   * 根据表名获得Mapper
+   */
+  @RequestMapping("/getMarkdown")
+  public String getMarkdown(String tableName) {
+    return codehelperService.getMarkdown(tableName);
+  }
 
   /**
    * 格式化SQL

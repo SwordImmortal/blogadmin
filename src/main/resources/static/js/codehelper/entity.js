@@ -11,7 +11,6 @@ var tools = new Vue({
             if (StringUtils.isNotBlank(this.oldVal)) {
                 request.getString("/getSelectSql", {
                     tableName: this.oldVal.replace(/'/g, ""),
-                    dataSourceName: $('.radio-inline input[name="optionsRadiosinline"]:checked ').val()
                 });
             }
         },
@@ -20,7 +19,6 @@ var tools = new Vue({
             if (StringUtils.isNotBlank(this.oldVal)) {
                 request.getString("/getMapper", {
                     tableName: this.oldVal.replace(/'/g, ""),
-                    dataSourceName: $('.radio-inline input[name="optionsRadiosinline"]:checked ').val(),
                     checkNull: $("#checkNull").is(':checked')
                 });
             }
@@ -34,6 +32,14 @@ var tools = new Vue({
                     doradoAnnotation: $("#doradoAnnotation").is(':checked'),
                     fieldAnnotation: $("#fieldAnnotation").is(':checked'),
                     baseEntity: $("#baseEntity").is(':checked')
+                });
+            }
+        },
+        // 获取实体
+        getMarkdown: function() {
+            if (StringUtils.isNotBlank(this.oldVal)) {
+                request.getString("/getMarkdown", {
+                    tableName: this.oldVal.replace(/'/g, "")
                 });
             }
         }

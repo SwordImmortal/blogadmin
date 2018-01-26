@@ -19,12 +19,10 @@ import org.apache.commons.lang3.StringUtils;
 public class DbUtil {
 
   public static Connection openConnection() {
-    String dataSourceName = "hr";
     String url = "url";
     String username = "username";
     String password = "password";
     Connection con = null;
-    String dataBaseName = null;
     // 加载驱动程序
     try {
       // 获取的是本地的IP地址
@@ -33,9 +31,9 @@ public class DbUtil {
       if ((hostAddress.contains("172.16.")
           || hostAddress.startsWith("10.")
           || hostAddress.startsWith("192.168."))) {
-        url = dataSourceName + "." + url;
-        username = dataSourceName + "." + username;
-        password = dataSourceName + "." + password;
+        url = "hr." + url;
+        username = "hr." + username;
+        password = "hr." + password;
       }
       con = DriverManager.getConnection(
           PropertyUtil.getProperty(url),
@@ -74,6 +72,10 @@ public class DbUtil {
 
   public static void closeDatabase(Connection con, Statement statement) {
     closeDatabase(con, statement, null);
+  }
+
+  public static void closeDatabase(Connection con) {
+    closeDatabase(con, null, null);
   }
 
   /**

@@ -115,11 +115,9 @@ public class CodehelperService {
         sql.append(" -- " + StringUtils.defaultIfBlank(comments.get(i), colNames.get(i)) + "\r\n");
       }
       sql.append(");");
-      sql.append("\n\n-- markdown\n\n");
-      sql.append(dbHelper.getMarkDown(tableName));
     } catch (Exception e) {
-      e.printStackTrace();
-      return "SQLException,该表或许不存在！";
+      logger.error(e.getMessage());
+      return "未知错误！异常信息：" + e.getMessage();
     } finally {
       DbUtil.closeDatabase(conn, null, null);
     }
@@ -128,8 +126,6 @@ public class CodehelperService {
 
   public String getMapper(String tableName, boolean checkNull) {
     String entityStr = "";
-    String strsql = "select * from " + tableName;
-    PreparedStatement pstmt = null;
     Connection conn = DbUtil.openConnection(); // 得到数据库连接
     DbHelper dbHelper = new DbHelper(conn);
     try {
@@ -143,11 +139,18 @@ public class CodehelperService {
       parameters.put("fieldTypes", dbHelper.getFieldTypes(tableName));// 字段类型
       parameters.put("date", DateFormatUtils.ISO_DATE_FORMAT.format(new Date()));// 当前时间
       entityStr = VelocityUtils.parse("mapper.vm", parameters);
-      DbUtil.closeDatabase(conn, null, null);
+      DbUtil.closeDatabase(conn);
     } catch (Exception e) {
-      logger.info(e.getMessage());
-      return "SQLException,该表或许不存在！";
+      logger.error(e.getMessage());
+      return "未知错误！异常信息：" + e.getMessage();
     }
     return entityStr;
+  }
+
+  public String getMarkdown(String tableName) {
+    Connection conn = DbUtil.openConnection(); // 得到数据库连接
+    DbHelper dbHelper = new DbHelper(conn);
+    DbUtil.closeDatabase(conn);
+    return dbHelper.getMarkDown(tableName);
   }
 }
