@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -79,7 +78,7 @@ public class BlogAdminController {
     Blog blog = (id == null ? new Blog() : blogDao.getOne(id));
     blog.setTitle(title);
     blog.setContent(content);
-    blog.setCategory(category);
+    blog.setCategoryId(category);
     if (id == null) {
       blogDao.saveEntity(blog);
     } else {
@@ -93,6 +92,7 @@ public class BlogAdminController {
   public List<Blog> getBlogs(@RequestParam Map<String, Object> map) {
     List<Blog> blogs = hiDao.findAll(Blog.class);
     for (Blog blog : blogs) {
+      blog.setCategoryName(getCategory(blog.getCategoryId()));
       if (blog.getContent() != null && blog.getContent().trim().length() > 20) {
         blog.setContent(blog.getContent().trim().substring(0, 20).replace("#", "").replace("&emsp;", "").trim());
       }
@@ -133,7 +133,7 @@ public class BlogAdminController {
         content.append("---\n")
             .append("title: " + blog.getTitle() + "\n")
             .append("date: " + DateFormatUtils.format(blog.getCreateDt(), "yyyy-MM-dd HH:mm:ss") + "\n")
-            .append("tags: " + getCategory(blog.getCategory()) + "\n")
+            .append("tags: " + getCategory(blog.getCategoryId()) + "\n")
             .append("---\n\n").append(blog.getContent());
         fileWriter.write(content.toString());
       } catch (IOException e) {

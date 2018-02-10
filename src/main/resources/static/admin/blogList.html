@@ -93,11 +93,6 @@
 	<script src="/js/layer/layer.js"></script>
 	<script>
 		$(function() {
-			var category = new Map();
-				category.set(1,"jdk");
-				category.set(2,"spring");
-				category.set(3,"生活");
-				category.set(4,"技术周边");
 			$('#blogTableEvents').bootstrapTable({
 				url : "/admin/getBlogs",
 				columns : [ {
@@ -109,11 +104,11 @@
 					field : "content",
 					title : "内容"
 				}, {
-					field : "category",
+					field : "categoryName",
 					title : "分类",
-					formatter: function (value, row, index) {
+					/* formatter: function (value, row, index) {
 	                    return category.get(value);
-	                }
+	                } */
 				}, {
 					field : "createDt",
 					title : "创建时间"

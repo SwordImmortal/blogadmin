@@ -3,6 +3,7 @@ package com.zhaoguhong.blog.entity;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.Transient;
 
 import com.zhaoguhong.blog.common.base.BaseEntity;
 
@@ -28,7 +29,12 @@ public class Blog extends BaseEntity {
   /**
    * 分类
    */
-  private Long category;
+  private Long categoryId;
+
+  /**
+   * 分类名称
+   */
+  private String categoryName;
 
   @Id
   @GeneratedValue
@@ -56,17 +62,26 @@ public class Blog extends BaseEntity {
     this.content = content;
   }
 
-  public Long getCategory() {
-    return category;
+  public Long getCategoryId() {
+    return categoryId;
   }
 
-  public void setCategory(Long category) {
-    this.category = category;
+  public void setCategoryId(Long categoryId) {
+    this.categoryId = categoryId;
+  }
+
+  @Transient
+  public String getCategoryName() {
+    return categoryName;
+  }
+
+  public void setCategoryName(String categoryName) {
+    this.categoryName = categoryName;
   }
 
   @Override
   public String toString() {
-    return "Blog [id=" + id + ", title=" + title + ", content=" + content + ", category=" + category + "]";
+    return "Blog [id=" + id + ", title=" + title + ", content=" + content + ", categoryId=" + categoryId + "]";
   }
 
 }
