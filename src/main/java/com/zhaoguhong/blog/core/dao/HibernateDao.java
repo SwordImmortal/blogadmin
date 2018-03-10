@@ -16,7 +16,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 import com.zhaoguhong.blog.common.base.BaseEntity;
 import com.zhaoguhong.blog.common.base.Page;
-import com.zhaoguhong.blog.core.Context;
+import com.zhaoguhong.blog.core.ContextHolder;
 
 /**
  * hibernate DAO
@@ -40,12 +40,12 @@ public class HibernateDao {
    */
   public Session getSession() {
     if (StringUtils.isEmpty(TransactionSynchronizationManager.getCurrentTransactionName())) {
-      Session session = Context.getHibernateSession();
+      Session session = ContextHolder.getHibernateSession();
       if (session != null && session.isOpen()) {
         return session;
       }
       session = sessionFactory.openSession();
-      Context.setHibernateSession(session);
+      ContextHolder.setHibernateSession(session);
       return session;
     }
     return sessionFactory.getCurrentSession();
@@ -82,7 +82,7 @@ public class HibernateDao {
 
   public <T> Page<T> find(Page<T> page, String hql, Object... parameters) {
     Query query = createQuery(hql, parameters);
-    long totalCount = countHqlResult(hql, parameters);
+    long totalCount = findUnique(generateCountHql(hql), parameters);
     page.setEntityCount((int) totalCount);
     query.setFirstResult(page.getFirstEntityIndex());
     query.setMaxResults(page.getPageSize());
@@ -92,7 +92,7 @@ public class HibernateDao {
 
   public <T> Page<T> find(Page<T> page, String hql, Map<String, ?> parameters) {
     Query query = createQuery(hql, parameters);
-    long totalCount = countHqlResult(hql, parameters);
+    long totalCount = findUnique(generateCountHql(hql), parameters);
     page.setEntityCount((int) totalCount);
     query.setFirstResult(page.getFirstEntityIndex());
     query.setMaxResults(page.getPageSize());
@@ -126,22 +126,12 @@ public class HibernateDao {
     return query;
   }
 
-  protected long countHqlResult(String hql, Object parameters[]) {
-    String countHql = generateCountHql(hql);
-    return ((Number) findUnique(countHql, parameters)).longValue();
-  }
-
-  protected long countHqlResult(String hql, Map<String, ?> parameters) {
-    String countHql = generateCountHql(hql);
-    return ((Number) findUnique(countHql, parameters)).longValue();
-  }
-
   /**
    * 拼接查询数量hql
    */
-  private String generateCountHql(String hql) {
+  protected String generateCountHql(String hql) {
     hql = StringUtils.substringAfter(hql, "from");
-    hql = StringUtils.substringBefore(hql, "order by");
+    hql = StringUtils.substringAfterLast(hql, "order by");
     return "select count(*)  from " + hql;
   }
 
