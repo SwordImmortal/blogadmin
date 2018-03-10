@@ -28,18 +28,6 @@
 		<div class="ibox float-e-margins">
 			<div class="ibox-title">
 				<h5>文章列表</h5>
-				<div class="ibox-tools">
-					<a class="collapse-link"> <i class="fa fa-chevron-up"></i>
-					</a> <a class="dropdown-toggle" data-toggle="dropdown" href="#"> <i
-						class="fa fa-wrench"></i>
-					</a>
-					<ul class="dropdown-menu dropdown-user">
-						<li><a href="#">选项1</a></li>
-						<li><a href="#">选项2</a></li>
-					</ul>
-					<a class="close-link"> <i class="fa fa-times"></i>
-					</a>
-				</div>
 			</div>
 			<div class="ibox-content">
 				<div class="row row-lg">
@@ -58,6 +46,7 @@
 									<button type="button" class="btn btn-outline btn-default" id="deleted">
 										<i class="glyphicon glyphicon-trash" aria-hidden="true"></i>
 									</button>
+									<button type="button" class="btn btn-outline btn-default" id="generateBlog">生成博客</button>
 								</div>
 
 								<table id="blogTableEvents" data-height="400"
@@ -102,13 +91,14 @@
 					title : "标题"
 				}, {
 					field : "content",
-					title : "内容"
+					title : "内容",
+					formatter : function(value, row, index){
+						value = value.replace(/#/g, "").replace(/&emsp;/g, "").replace(/\\s/g, "").trim();
+						return (value.length > 25 ? value.substring(0,25): value)+"..." ;
+					}
 				}, {
 					field : "categoryName",
-					title : "分类",
-					/* formatter: function (value, row, index) {
-	                    return category.get(value);
-	                } */
+					title : "分类"
 				}, {
 					field : "createDt",
 					title : "创建时间"
@@ -148,18 +138,32 @@
 			});
 			$("#deleted").click(function(){
 				var selections = $('#blogTableEvents').bootstrapTable('getSelections');
-				var ids =[];
-				selections.forEach(function(item){
-					ids.push(item.id);
-					request.post("/admin/updateBlog", {
-						isDeleted : 1,
-						ids : ids.join(",")
-					},function(result){
-						$('#blogTableEvents').bootstrapTable('refresh');
+				if(selections.length == 0){
+					layer.msg('请至少选择一个'); 
+					return;
+				}
+				layer.confirm('确定要删除这'+selections.length+"篇博客吗？", function(){
+					var ids =[];
+					selections.forEach(function(item){
+						ids.push(item.id);
+						request.post("/admin/updateBlog", {
+							isDeleted : 1,
+							ids : ids.join(",")
+						},function(result){
+							$('#blogTableEvents').bootstrapTable('refresh');
+						});
 					});
-				})
+				});
 			});
-		})
+			
+			$("#generateBlog").click(function() {
+				layer.confirm("确定要生成博客文件吗？",function(){
+					request.getString("/admin/generateBlog", {}, function(result) {
+						layer.msg('生成成功'); 
+					});
+				});
+			});
+		});
 	</script>
 </body>
 
