@@ -93,7 +93,7 @@
 					field : "content",
 					title : "内容",
 					formatter : function(value, row, index){
-						value = value.replace(/#/g, "").replace(/&emsp;/g, "").replace(/\\s/g, "").trim();
+						value = value.replace(/#/g, "").replace(/&emsp;/g, "").replace(/\s/g, "").trim();
 						return (value.length > 25 ? value.substring(0,25): value)+"..." ;
 					}
 				}, {
