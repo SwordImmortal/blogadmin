@@ -35,6 +35,11 @@ public class Blog extends BaseEntity {
    * 分类名称
    */
   private String categoryName;
+  
+  /**
+   * 标签
+   */
+  private String tag;
 
   @Id
   @GeneratedValue
@@ -68,6 +73,14 @@ public class Blog extends BaseEntity {
 
   public void setCategoryId(Long categoryId) {
     this.categoryId = categoryId;
+  }
+  
+  public String getTag() {
+    return tag;
+  }
+
+  public void setTag(String tag) {
+    this.tag = tag;
   }
 
   @Transient

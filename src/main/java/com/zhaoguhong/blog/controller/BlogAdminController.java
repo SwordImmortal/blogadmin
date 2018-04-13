@@ -14,10 +14,10 @@ import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
-import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,7 +25,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.zhaoguhong.blog.core.dao.HibernateDao;
+import com.zhaoguhong.blog.core.ContextHolder;
+import com.zhaoguhong.blog.core.dao.BaseDao;
 import com.zhaoguhong.blog.dao.BlogDao;
 import com.zhaoguhong.blog.dao.CategoryDao;
 import com.zhaoguhong.blog.entity.Blog;
@@ -46,12 +47,11 @@ public class BlogAdminController {
   @Resource
   private BlogDao blogDao;
   @Resource
-  private HibernateDao hiDao;
+  private BaseDao baseDao;
   @Resource
   private CategoryDao categoryDao;
   private Logger logger = LoggerFactory.getLogger(getClass());
   private Map<Long, String> categorys = Collections.synchronizedMap(Maps.newHashMap());
-  private Session session;
 
   @RequestMapping("/test")
   public String index() {
@@ -61,13 +61,10 @@ public class BlogAdminController {
 
   @RequestMapping("/updateBlog")
   @Transactional
-  public Map<String, Object> updateBlog(@RequestParam Map<String, Object> map) {
+  public Map<String, Object> updateBlog(@RequestBody Map<String, Object> map) {
     Map<String, Object> result = Maps.newHashMap();
     result.put("status", true);
     Long id = MapUtils.getLong(map, "id");
-    String title = MapUtils.getString(map, "title");
-    Long category = MapUtils.getLong(map, "category");
-    String content = MapUtils.getString(map, "content");
     Integer isDeleted = MapUtils.getInteger(map, "isDeleted");
     if (Objects.equal(isDeleted, 1)) {
       String ids = MapUtils.getString(map, "ids");
@@ -76,7 +73,11 @@ public class BlogAdminController {
       }
       return result;
     }
-    if (StringUtils.isAnyBlank(title, content)) {
+    String title = MapUtils.getString(map, "title");
+    Long category = MapUtils.getLong((Map) MapUtils.getObject(map, "category"), "selected");
+    String content = MapUtils.getString(map, "content");
+    String tag = MapUtils.getString(map, "tag");
+    if (StringUtils.isAnyBlank(title, content, tag)) {
       result.put("status", false);
       result.put("info", "有必填项为空！");
       return result;
@@ -85,6 +86,7 @@ public class BlogAdminController {
     blog.setTitle(title);
     blog.setContent(content);
     blog.setCategoryId(category);
+    blog.setTag(tag);
     if (id == null) {
       blogDao.saveEntity(blog);
     } else {
@@ -96,10 +98,11 @@ public class BlogAdminController {
 
   @RequestMapping("/getBlogs")
   public List<Blog> getBlogs(@RequestParam Map<String, Object> map) {
-    List<Blog> blogs = hiDao.findAll(Blog.class);
+    List<Blog> blogs = baseDao.findAll(Blog.class);
     for (Blog blog : blogs) {
       blog.setCategoryName(getCategory(blog.getCategoryId()));
     }
+    System.out.println(ContextHolder.getResponse());
     return blogs;
   }
 
@@ -111,7 +114,7 @@ public class BlogAdminController {
   @RequestMapping("/generateBlog")
   public String generateGitPageBolg() {
     String blogPath = "/project/gitpagesblog/source/_posts/";
-    List<Blog> blogs = hiDao.findAll(Blog.class);
+    List<Blog> blogs = baseDao.findAll(Blog.class);
     Set<String> names = Sets.newHashSet();
     for (Blog blog : blogs) {
       names.add(blog.getTitle());
@@ -161,9 +164,11 @@ public class BlogAdminController {
         content.append("---\n")
             .append("title: " + blog.getTitle() + "\n")
             .append("date: " + DateFormatUtils.format(blog.getCreateDt(), "yyyy-MM-dd HH:mm:ss") + "\n")
-            .append("categories: " + getCategory(blog.getCategoryId()) + "\n")
-            .append("tags: " + getCategory(blog.getCategoryId()) + "\n")
-            .append("---\n\n").append(contentStr);
+            .append("categories: " + getCategory(blog.getCategoryId()) + "\n");
+        if (StringUtils.isNotBlank(blog.getTag())) {
+          content.append("tags: [" + blog.getTag() + "]\n");
+        }
+        content.append("---\n\n").append(contentStr);
         FileUtils.writeStringToFile(file, content.toString(), Charset.forName("utf-8"));
       } catch (IOException e) {
         logger.error("写入文件{}失败", blog.getTitle());
@@ -174,7 +179,7 @@ public class BlogAdminController {
 
   public String getCategory(Long id) {
     if (categorys.isEmpty()) {
-      List<Category> categoryList = hiDao.findAll(Category.class);
+      List<Category> categoryList = baseDao.findAll(Category.class);
       categoryList.forEach(category -> categorys.put(category.getId(), category.getName()));
     }
     return categorys.get(id);
