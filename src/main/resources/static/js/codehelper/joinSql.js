@@ -1,117 +1,3 @@
-//vue tools
-var tools = new Vue({
-    el: '#tools',
-    data: {
-        oldVal: "",
-        newVal: ""
-    },
-    methods: {
-        // 大写转小写
-        bigToSmall: function() {
-            this.newVal = this.oldVal.toLowerCase();
-        },
-        // 小写转大写
-        smallToBig: function() {
-            this.newVal = this.oldVal.toUpperCase();
-        },
-        // 清屏
-        clear: function() {
-            this.oldVal = "";
-            this.newVal = "";
-        },
-        // 提取sql
-        extractSql: function() {
-            var sql = this.oldVal.match(/\"(.*?)\"/g).join("").replace(/"/g, "");
-            request.getString("/formatSql", {
-                sql: sql
-            });
-        },
-        // 转stringBuilder
-        stringBuilder: function() {
-            var arr = this.oldVal.split("\n");
-            this.newVal = "StringBuilder sql = new StringBuilder();\n";
-            for (var i = 0; i < arr.length; i++) {
-                if (StringUtils.isNotBlank(arr[i])) {
-                    this.newVal += "sql.append(\" " + arr[i] + " \");\n";
-                }
-            }
-        },
-        // 获取set方法
-        getSetMethod: function() {
-            var oldStrArray = this.oldVal.split("\n");
-            var objectName = "";
-            var className = "";
-            this.newVal = "";
-            for (var i = 0; i < oldStrArray.length; i++) {
-                if (oldStrArray[i].indexOf(" class ") != -1) {
-                    className = getNextWord(oldStrArray[i], "class");
-                    objectName = className.substring(0, 1).toLowerCase() + className.substring(1);
-                }
-                if (oldStrArray[i].indexOf("private ") != -1) {
-                    var type = getNextWord(oldStrArray[i], "private");
-                    var filed = getNextWord(oldStrArray[i], type);
-                    this.newVal += objectName + ".set" + filed.substring(0, 1).toUpperCase() + filed.substring(1) + "(" + filed + ");\n";
-                }
-            }
-            var newObj = className + " " + objectName + " = new " + className + "();\n";
-            this.newVal = newObj + this.newVal;
-        },
-        // js 格式化
-        jsFormat: function() {
-            if (StringUtils.isNotBlank(this.oldVal)) {
-                this.newVal = js_beautify(this.oldVal);
-            }
-        },
-        // html 格式化
-        htmlFormat: function() {
-            if (StringUtils.isNotBlank(this.oldVal)) {
-                this.newVal = style_html(this.oldVal);
-            }
-        },
-        // sql 格式化
-        sqlFormat: function() {
-            if (StringUtils.isNotBlank(this.oldVal)) {
-                request.getString("/formatSql", {
-                    sql: this.oldVal
-                });
-            }
-        },
-        // 获取查询SQL
-        getSelectSql: function() {
-            if (StringUtils.isNotBlank(this.oldVal)) {
-                request.getString("/getSelectSql", {
-                    tableName: this.oldVal.replace(/'/g, ""),
-                    dataSourceName: $('.radio-inline input[name="optionsRadiosinline"]:checked ').val()
-                });
-            }
-        },
-        // 获取Mapper
-        getMapper: function() {
-            if (StringUtils.isNotBlank(this.oldVal)) {
-                request.getString("/getMapper", {
-                    tableName: this.oldVal.replace(/'/g, ""),
-                    dataSourceName: $('.radio-inline input[name="optionsRadiosinline"]:checked ').val(),
-                    checkNull: $("#checkNull").is(':checked')
-                });
-            }
-        },
-        // 获取实体
-        getEntity: function() {
-            if (StringUtils.isNotBlank(this.oldVal)) {
-                request.getString("/getEntity", {
-                    tableName: this.oldVal.replace(/'/g, ""),
-                    dataSourceName: $('.radio-inline input[name="optionsRadiosinline"]:checked ').val(),
-                    hibernateAnnotation: $("#hibernateAnnotation").is(':checked'),
-                    doradoAnnotation: $("#doradoAnnotation").is(':checked'),
-                    fieldAnnotation: $("#fieldAnnotation").is(':checked'),
-                    baseEntity: $("#baseEntity").is(':checked')
-                });
-            }
-        }
-    }
-});
-
-// ------------------------sql 拼接-----------------------------
 // 根据数据类型获取匹配方式
 var getMatchType = function(dataType) {
     return dataType == 'String' ? {
@@ -158,30 +44,30 @@ var getMatchType = function(dataType) {
 };
 
 // 根据数据类型获取判断空方式
-var getVerifyEmpty = function(dataType) {
+var getVerifyEmptyType = function(dataType) {
     return dataType == 'String' ? {
-        selected: 'StringUtils.isNotBlank(param)',
+        selected: 1,
         options: [{
-            text: 'isNotBlank',
-            value: 'StringUtils.isNotBlank(param)'
+            text: '不为空白',
+            value: 1
         },
         {
-            text: 'isNotEmpty',
-            value: 'StringUtils.isNotEmpty(param)'
+            text: '不为空',
+            value: 2
         },
         {
-            text: '!= null',
-            value: 'param != null'
+            text: '不为null',
+            value: 3
         }]
     }: {
-        selected: 'param != null && param > 0',
+        selected: 4,
         options: [{
-            text: '!= null && > 0',
-            value: 'param != null && param > 0'
+            text: '不为null并且大于0',
+            value: 4
         },
         {
-            text: '!= null',
-            value: 'param != null'
+            text: '不为null',
+            value: 3
         }]
     };
 };
@@ -206,7 +92,7 @@ var initParameter = {
         }]
     },
     "matchType": getMatchType("String"),
-    "verifyEmpty": getVerifyEmpty("String")
+    "verifyEmpty": getVerifyEmptyType("String")
 };
 
 // vue 基本配置
@@ -225,7 +111,7 @@ var config = new Vue({
             }]
         },
         frame: {
-            selected: 'springjdbc',
+            selected: 'mybatis',
             options: [{
                 text: 'springjdbc',
                 value: 'springjdbc'
@@ -233,9 +119,14 @@ var config = new Vue({
             {
                 text: 'hibernate',
                 value: 'hibernate'
+            },
+            {
+                text: 'mybatis',
+                value: 'mybatis'
             }]
         },
         initSql: "",
+        mapperId: "",
         returnType: "Object"
     }
 });
@@ -261,15 +152,30 @@ var params = new Vue({
             this.parameters.push(newObject);
         },
         changeAppendSql: function(index) {
-            var name = this.parameters[index].name.trim();
-            var assignmentType = config.assignmentType.selected;
-            var matchType = this.parameters[index].matchType.selected;
-            this.parameters[index].appendSql = name ? "AND " + name + " " + matchType + (assignmentType == 1 ? ":" + name: "?") : "";
+        	let name = this.parameters[index].name.trim();
+        	let assignmentType = config.assignmentType.selected;
+        	let matchType = this.parameters[index].matchType.selected;
+            let isMybatis = (config.frame.selected == "mybatis");
+            let appendSql = "";
+            if(!name){
+            	
+            }else if(isMybatis){
+            	if(matchType == "like"){
+            		appendSql = "CONCAT('%',#{" + name+ "},'%')";
+            	}else{
+            		appendSql = "#{" + name+ "}";
+            	}
+            }else if(assignmentType == 1){
+            	appendSql = ":" + name;
+            }else {
+            	appendSql = "?";
+            }
+            this.parameters[index].appendSql = name?("AND " + name + " " + matchType + " " + appendSql):"";
         },
         changeDataType: function(index) {
             var dataType = this.parameters[index].dataType.selected;
             this.parameters[index].matchType = getMatchType(dataType);
-            this.parameters[index].verifyEmpty = getVerifyEmpty(dataType);
+            this.parameters[index].verifyEmpty = getVerifyEmptyType(dataType);
         },
         reset: function() {
             this.parameters = [];
@@ -281,28 +187,81 @@ var params = new Vue({
         }
     }
 });
-params.parameters.push($.extend(true, {},initParameter));
+params.parameters.push($.extend(true, {},
+initParameter));
 
+/**
+ * 获取判断条件
+ * @param    {string}  frame	框架
+ * @param    {number}   verifyEmptyType  判空类型
+ * @param    {string}  name   字段名称
+ */
+function getVerify(frame, verifyEmptyType, name) {
+    let result = "";
+    if (frame == "springjdbc" || frame == "hibernate") {
+        switch (verifyEmptyType) {
+        case 1:
+            result = "StringUtils.isBlank(param)";break;
+        case 2:
+            result = "StringUtils.isEmpty(param)";break;
+        case 3:
+            result = "param != null";break;
+        case 4:
+            result = "param != null && param > 0";break;
+        default:
+            result = "";
+        }
+        result = "if(" + result + ") {";
+    } else if (frame == "mybatis") {
+        switch (verifyEmptyType) {
+        case 1:
+            result = "'param != null and .trim() != \"\"'";break;
+        case 2:
+            result = "param != null and param !=''";break;
+        case 3:
+            result = "param != null";break;
+        case 4:
+            result = "param != null and param > 0";break;
+        default:
+            result = "";
+        }
+        if (result.indexOf("'") != 0) {
+            result = '"' + result + '"';
+        }
+        result = "\t<if test=" + result + ">";
+    }
+    return result.replace(/param/g, name);
+}
 // 拼接sql
 var doJoinSql = function() {
-    var frame = config.frame.selected;
-    var assignmentType = config.assignmentType.selected;
-    var initSql = config.initSql;
-    var returnType = config.returnType.trim();
-    var errorMsg = ""; // 错误信息
-    var sqlName = frame == "springjdbc" ? "sql": "hql"; // sql变量名字
-    var nameArray = []; // name数组集
-    var sql = "";
-    sql += "StringBuilder " + sqlName + " = new StringBuilder();"
-    if (assignmentType == 1) {
-        sql += "Map<String, Object> parameters = new HashMap<String, Object>();"
+    let frame = config.frame.selected;
+    let isMybatis = (frame == "mybatis");
+    let assignmentType = config.assignmentType.selected;
+    let initSql = config.initSql;
+    let returnType = config.returnType.trim();
+    let mapperId = config.mapperId.trim();
+    let errorMsg = "";
+    let sqlName = frame == "springjdbc" ? "sql": "hql"; // sql变量名字
+    let nameArray = []; // name数组集
+    let sql = [];
+    if (isMybatis) {
+        sql.push("<select id=\"" + mapperId + "\" parameterType=\"java.util.Map\" resultType=\"" + returnType + "\">");
     } else {
-        sql += "List<Object> parameters = new ArrayList<Object>();"
+        sql.push("StringBuilder " + sqlName + " = new StringBuilder();");
+        if (assignmentType == 1) {
+            sql.push("Map<String, Object> parameters = new HashMap<String, Object>();");
+        } else {
+            sql.push("List<Object> parameters = new ArrayList<Object>();)");
+        }
     }
     var sqlArray = initSql.split("\n");
     sqlArray.forEach(function(e) {
         if (StringUtils.isNotBlank(e)) {
-            sql += sqlName + '.append(" ' + e + ' ");';
+            if (isMybatis) {
+                sql.push("\t" + e);
+            } else {
+                sql.push(sqlName + '.append(" ' + e + ' ");');
+            }
         }
     });
     params.parameters.forEach(function(parameter, index) {
@@ -326,48 +285,55 @@ var doJoinSql = function() {
             }
         }
         if (errorMsg && errorMsg.indexOf("条数据不符合规则") == -1) {
-            errorMsg += ",第" + (index + 1) + "条数据不符合规则"
+            errorMsg += ",第" + (index + 1) + "条数据不符合规则";
         }
-        // 获取变量值
-        sql += dataType + " " + name + " = MapUtils.get" + dataType + "(params, \"" + name + "\");";
+        if (!isMybatis) {
+            // 获取变量值
+            sql.push(dataType + " " + name + " = MapUtils.get" + dataType + "(params, \"" + name + "\");");
+        }
         // 变量判断是否为空
-        sql += "if (" + verifyEmpty.replace(/param/g, name) + ") {";
-        // 拼接sql
-        if (!appendSql) {
-            appendSql = "AND " + name + " " + matchType + ":" + name;
-        }
-        if (appendSql.indexOf("and") != 0 && appendSql.indexOf("AND") != 0) {
-            appendSql += "AND ";
-        }
-        if (frame == "springjdbc") {
-            sql += "  sql.append(\" " + appendSql + " \");";
+        sql.push(getVerify(frame, verifyEmpty, name));
+        if (isMybatis) {
+            sql.push("\t\t" + appendSql);
+        } else if (frame == "springjdbc") {
+            sql.push("  sql.append(\" " + appendSql + " \");");
         } else {
-            sql += "  hql.append(\" " + appendSql + " \");";
+            sql.push("  hql.append(\" " + appendSql + " \");");
+        }
+        if (isMybatis) {
+       	 sql.push("\t</if>");
+       }else{
+            likeName = matchType == 'like' ? "Common.ConvertLikeParamer(" + name + ")": name;
+            // 参数赋值
+            if (assignmentType == 1) {
+                sql.push("  parameters.put(\"" + name + "\", " + likeName + ");");
+            } else {
+                sql.push("  parameters.add(" + likeName + ");");
+            }
+            sql.push("}");
         }
 
-        likeName = matchType == 'like' ? "Common.ConvertLikeParamer(" + name + ")": name;
-        // 参数赋值
-        if (assignmentType == 1) {
-            sql += "  parameters.put(\"" + name + "\", " + likeName + ");";
-        } else {
-            sql += "  parameters.add(" + likeName + ");";
-        }
-        sql += "}";
     });
     if (errorMsg) {
         layer.msg(errorMsg);
         return errorMsg;
     }
-    // 执行sql 返回结果
-    sql += "List<" + returnType + "> lists = ";
-    if (frame == "springjdbc" && assignmentType == 1) {
-        sql += "this.getNamedParameterJdbcTemplate().queryForList(" + sqlName + ".toString(), parameters);";
-    } else if (frame == "springjdbc" && assignmentType == 2) {
-        sql += "this.getJdbcTemplate().queryForList(" + sqlName + ".toString(), parameters.toArray());";
-    } else if (frame == "hibernate" && assignmentType == 1) {
-        sql += "hdao.find(" + sqlName + ".toString(), parameters);";
-    } else if (frame == "hibernate" && assignmentType == 2) {
-        sql += "hdao.find(" + sqlName + ".toString(), parameters.toArray());";
+    let resultSql = "";
+    if (isMybatis) {
+    	resultSql +="</select>";
+    }else{
+        // 执行sql 返回结果
+    	resultSql +="List<" + returnType + "> lists = ";
+        if (frame == "springjdbc" && assignmentType == 1) {
+        	resultSql +="this.getNamedParameterJdbcTemplate().queryForList(" + sqlName + ".toString(), parameters);";
+        } else if (frame == "springjdbc" && assignmentType == 2) {
+        	resultSql +="this.getJdbcTemplate().queryForList(" + sqlName + ".toString(), parameters.toArray());";
+        } else if (frame == "hibernate" && assignmentType == 1) {
+            resultSql +="hdao.find(" + sqlName + ".toString(), parameters);";
+        } else if (frame == "hibernate" && assignmentType == 2) {
+        	resultSql +="hdao.find(" + sqlName + ".toString(), parameters.toArray());";
+        }	
     }
-    return sql.replace(/;/g, ";\n").replace(/{/g, "{\n").replace(/}/g, "}\n");
+    sql.push(resultSql);
+    return sql.join("\n")
 }

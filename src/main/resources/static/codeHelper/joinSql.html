@@ -34,7 +34,7 @@
 			</div>
 			<div class="form-group">
 				<label class="col-sm-1 control-label" >框架</label>
-				<div class="col-sm-3">
+				<div class="col-sm-2">
 					<select  class="form-control"  v-model="frame.selected" >
 						<option v-for="option in frame.options" v-bind:value="option.value">
 	    					{{ option.text }}
@@ -42,15 +42,19 @@
 					</select>
 				</div>
 				<label class="col-sm-1 control-label" for="assignmentType" >赋值方式</label>
-				<div class="col-sm-3" >
+				<div class="col-sm-2" >
 					<select  class="form-control"  v-model="assignmentType.selected" >
 						 <option v-for="option in assignmentType.options" v-bind:value="option.value">
 	    					{{ option.text }}
 	 		 			 </option>
 					</select>
 				</div>
+				<label class="col-sm-1 control-label" >mapperId</label>
+				<div class="col-sm-2">
+					<input class="form-control" type="text"   v-model="mapperId"/>
+				</div>
 				<label class="col-sm-1 control-label" >返回类型</label>
-				<div class="col-sm-3">
+				<div class="col-sm-2">
 					<input class="form-control" type="text"   v-model="returnType"/>
 				</div>
 			</div>
@@ -111,7 +115,7 @@
 			</div>
 			<div class="form-group">
 				<div class="col-sm-12">
-					<textarea class="form-control" rows="10" type="text"/>{{sql}}</textarea>
+					<textarea class="form-control" rows="15" type="text"/>{{sql}}</textarea>
 				</div>
 			</div>
 		</fieldset>
