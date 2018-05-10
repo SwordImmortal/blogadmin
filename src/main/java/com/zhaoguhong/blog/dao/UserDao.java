@@ -1,11 +1,16 @@
 package com.zhaoguhong.blog.dao;
 
-import com.zhaoguhong.blog.common.base.BaseRepository;
+import org.springframework.stereotype.Repository;
+
+import com.zhaoguhong.blog.core.dao.BaseDao;
 import com.zhaoguhong.blog.entity.User;
 
-public interface  UserDao extends BaseRepository<User> {
-
-  // @Query("from ImportExcelCell where rowId = ?1 and isDeleted = 0")
-//   List<User> findByRowId(Long rowId);
-  //
+@Repository
+public class UserDao extends BaseDao {
+  
+  public User findUserByUserName(String userName) {
+    String hql = "from User where isDeleted = 0 and userName =?";
+    return findUnique(hql, userName);
+  }
+  
 }

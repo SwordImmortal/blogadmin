@@ -54,7 +54,7 @@ public class $entityName#if($baseEntity) extends BaseEntity#end {
    */
 #end
 #if($doradoAnnotation)
-  @PropertyDef(label = "$comments.get($index)")
+  @PropertyDef(label = "$simpleComments.get($index)")
 #end
   private $fieldTypes.get($index) $fieldName;
 #end

@@ -6,8 +6,10 @@ import javax.persistence.Id;
 
 import com.zhaoguhong.blog.common.base.BaseEntity;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * 分类
@@ -18,6 +20,8 @@ import lombok.Data;
 @Entity
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Category extends BaseEntity {
   
   private Long id;

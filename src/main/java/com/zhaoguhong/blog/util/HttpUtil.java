@@ -2,11 +2,14 @@ package com.zhaoguhong.blog.util;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,21 +24,86 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.fluent.Executor;
+import org.apache.http.client.fluent.Request;
+import org.apache.http.client.fluent.Response;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.http.ssl.TrustStrategy;
 import org.apache.http.util.EntityUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+/**
+ * Http 工具类
+ * 
+ * @author zhaoguhong
+ * @date 2018年3月10日
+ */
 public class HttpUtil {
+
+  /**
+   * 执行http请求，返回HttpEntity
+   */
+  public static HttpEntity execute(String uri, Map<String, Object> params, String methodName) {
+    // 构建request参数
+    List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
+    if (MapUtils.isNotEmpty(params)) {
+      params.forEach((key, value) -> {
+        nameValuePairs.add(new BasicNameValuePair(key, value.toString()));
+      });
+    }
+    Request request = null;
+    if ("GET".equalsIgnoreCase(methodName)) {
+      uri += URLEncodedUtils.format(nameValuePairs, "UTF-8");
+      request = Request.Get(uri);
+    } else {
+      request = Request.Post(uri).bodyForm(nameValuePairs, Charset.forName("utf-8"));;
+    }
+    Executor executor = Executor.newInstance(getHttpClient());
+    try {
+      Response response = executor.execute(request);
+      // 获取返回结果
+      HttpResponse httpResponse = response.returnResponse();
+      return httpResponse.getEntity();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public static CloseableHttpClient getHttpClient() {
+    SSLContextBuilder builder = new SSLContextBuilder();
+    try {
+      builder.loadTrustMaterial(null, new TrustStrategy() {
+
+        @Override
+        public boolean isTrusted(java.security.cert.X509Certificate[] chain, String authType)
+            throws CertificateException {
+          return true;
+        }
+      });
+    } catch (NoSuchAlgorithmException | KeyStoreException e) {
+      throw new RuntimeException(e);
+    }
+    SSLConnectionSocketFactory sslsf = null;
+    try {
+      sslsf = new SSLConnectionSocketFactory(builder.build(), new NoopHostnameVerifier());
+    } catch (KeyManagementException | NoSuchAlgorithmException e1) {
+      e1.printStackTrace();
+    }
+    return HttpClients.custom().setSSLSocketFactory(sslsf).build();
+  }
 
   public static String getString(String url) {
     return getString(url, null);
@@ -45,53 +113,36 @@ public class HttpUtil {
    * get请求，返回String
    */
   public static String getString(String url, Map<String, Object> params) {
-    if (MapUtils.isNotEmpty(params)) {
-      // 构建request参数
-      List<NameValuePair> qparams = new ArrayList<NameValuePair>();
-      params.forEach((key, value) -> {
-        qparams.add(new BasicNameValuePair(key, value.toString()));
-      });
-      url += URLEncodedUtils.format(qparams, "UTF-8");
-    }
-    HttpClient httpClient = HttpClients.createDefault();
-    HttpGet httpGet = new HttpGet(url);
-    String result = null;
     try {
-      HttpResponse response = httpClient.execute(httpGet);
-      HttpEntity entity = response.getEntity();
+      HttpEntity entity = execute(url, params, "get");
       if (entity != null) {
-        result = EntityUtils.toString(entity, "utf-8");
+        return EntityUtils.toString(entity, "utf-8");
       }
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
-    return result;
+    return null;
+  }
+
+  /**
+   * get请求，返回字节数组
+   */
+  public static byte[] getByteArray(String url, Map<String, Object> params) {
+    HttpEntity entity = execute(url, params, "get");
+    if (entity != null) {
+      try {
+        return EntityUtils.toByteArray(entity);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    return null;
   }
 
   public static Map<String, Object> postMap(String url, Map<String, Object> params) {
-    List<NameValuePair> formparams = new ArrayList<NameValuePair>();
-    if (MapUtils.isNotEmpty(params)) {
-      params.forEach((key, value) -> {
-        formparams.add(new BasicNameValuePair(key, value.toString()));
-      });
-    }
-    UrlEncodedFormEntity entityParams = null;
     try {
-      entityParams = new UrlEncodedFormEntity(formparams, "UTF-8");
-    } catch (UnsupportedEncodingException e) {
-      throw new RuntimeException(e);
-    }
-    HttpPost httpPost = new HttpPost(url);
-    httpPost.setEntity(entityParams);
-    HttpClient httpClient = HttpClients.createDefault();
-    HttpResponse response;
-    try {
-      response = httpClient.execute(httpPost);
-      HttpEntity entity = response.getEntity();
+      HttpEntity entity = execute(url, params, "post");
       if (entity != null) {
-        // 打印响应内容长度
-        System.out.println("Response content length: " + entity.getContentLength());
-        // 响应内容
         String json = EntityUtils.toString(entity, "UTF-8");
         return JSONUtil.toMap(json);
       }
@@ -109,7 +160,6 @@ public class HttpUtil {
     HttpPost httpPost = new HttpPost("http://localhost:8081/testPost");
     httpPost.setEntity(entityParams);
     httpPost.addHeader("Authorization", "Bearer " + "access_token");
-
     HttpClient httpClient = HttpClients.createDefault();
     HttpResponse response = httpClient.execute(httpPost);
     System.out.println("协议版本:" + response.getProtocolVersion());

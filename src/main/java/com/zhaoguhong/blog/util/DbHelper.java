@@ -8,6 +8,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
@@ -33,24 +34,19 @@ public class DbHelper {
    * @return
    */
   public String getPrimary(String tableName) {
+    // 这种方式不能动态指定数据库
+    // DatabaseMetaData dbMetaData = conn.getMetaData();
+    // ResultSet pkRSet = dbMetaData.getPrimaryKeys(null, null, tableName);
     String firstPrimaryName = null;
-    try {
-      DatabaseMetaData dbMetaData = conn.getMetaData();
-      ResultSet pkRSet = dbMetaData.getPrimaryKeys(null, null, tableName);
-      while (pkRSet.next()) {
-        String primaryName = Objects.toString(pkRSet.getObject(4), "");
-        if (firstPrimaryName == null) {
-          firstPrimaryName = primaryName;
-        }
-        // 有可能有联合主键，取包含ID的
-        if (primaryName.toUpperCase().contains("ID")) {
-          return primaryName;
-        }
+    String createSql = getCreateTableSql(tableName);
+    List<String> primaryNames = RegularUtil.find(createSql.replace("`", ""), "PRIMARY KEY \\((.*)\\)");
+    for (String primaryName : primaryNames) {
+      // 有可能有联合主键，取包含ID的
+      if (primaryName.toUpperCase().contains("ID")) {
+        return primaryName;
       }
-    } catch (SQLException e) {
-      throw new RuntimeException(e);
     }
-    return firstPrimaryName;
+    return primaryNames.get(0);
   }
 
   /**
@@ -150,6 +146,29 @@ public class DbHelper {
       throw new RuntimeException("数据库链接异常");
     }
     return commentList;
+  }
+
+  /**
+   * 获取简单数据库字段注释 例如 注释为：含税方式 0不含税 1 含税，那么只取含税方式四个字
+   * 
+   * @param tableName
+   * @return
+   */
+  public List<String> getSimpleComments(String tableName) {
+    List<String> commentList = getComments(tableName);
+    List<String> simpleComments = Lists.newArrayList();
+    String[] separates = {":", "：", ",", "，", " "};
+    commentList.forEach(comment -> {
+      int index = 0;
+      for (String separate : separates) {
+        int separateIndex = comment.indexOf(separate);
+        if (separateIndex > 0 && (index == 0 || separateIndex < index)) {
+          index = separateIndex;
+        }
+      }
+      simpleComments.add(index > 0 ? comment.substring(0, index) : comment);
+    });
+    return simpleComments;
   }
 
   /**

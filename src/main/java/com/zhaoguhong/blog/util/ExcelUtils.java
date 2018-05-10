@@ -3,14 +3,16 @@ package com.zhaoguhong.blog.util;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
@@ -117,7 +119,6 @@ public class ExcelUtils {
 
     return ret;
   }
-
   /**
    * 读取file为excel
    * 
@@ -144,15 +145,31 @@ public class ExcelUtils {
     } catch (Exception e) {
       throw new RuntimeException("文件不是标准的excel格式");
     } finally {
-      if (inputStream != null) {
-        try {
-          inputStream.close();
-        } catch (IOException e) {
-          logger.warn("关闭流异常！");
-        }
-      }
+      IOUtils.closeQuietly(inputStream);
     }
     return workbook;
+  }
+
+  /**
+   * excel删除sheet
+   * 
+   * @param path
+   * @param sheetName
+   */
+  public static void deleteSheet(String path, String sheetName) {
+    Workbook workbook = null;
+    OutputStream outputStream = null;
+    try {
+      workbook = getWookBook(path);
+      int sheetIndex = workbook.getSheetIndex(sheetName);
+      workbook.removeSheetAt(sheetIndex);
+      outputStream = new FileOutputStream(path);
+      workbook.write(outputStream);
+    } catch (Exception e) {
+      throw new RuntimeException(e.getMessage());
+    } finally {
+      IOUtils.closeQuietly(outputStream);
+    }
   }
 
   public static void main(String[] args) {

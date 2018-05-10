@@ -7,6 +7,7 @@ import javax.persistence.EntityManager;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.data.repository.core.EntityMetadata;
+import org.springframework.transaction.annotation.Transactional;
 
 public class BaseRepositoryImpl<T extends BaseEntity> extends SimpleJpaRepository<T, Long>
     implements BaseRepository<T> {
@@ -37,6 +38,7 @@ public class BaseRepositoryImpl<T extends BaseEntity> extends SimpleJpaRepositor
   // }
 
   @Override
+  @Transactional
   public void saveEntity(T entity) {
     entity.setCreateDt(new Date());
     entity.setIsDeleted(0);
@@ -44,12 +46,14 @@ public class BaseRepositoryImpl<T extends BaseEntity> extends SimpleJpaRepositor
   }
 
   @Override
+  @Transactional
   public void updateEntity(T entity) {
     entity.setUpdateDt(new Date());
     save(entity);
   }
 
   @Override
+  @Transactional
   public void deteleEntity(T entity) {
     entity.setUpdateDt(new Date());
     entity.setIsDeleted(1);

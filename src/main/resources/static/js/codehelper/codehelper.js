@@ -85,27 +85,73 @@ var tools = new Vue({
                 });
             }
         },
-        // 获取Mapper
-        getMapper: function() {
-            if (StringUtils.isNotBlank(this.oldVal)) {
-                request.getString("/getMapper", {
-                    tableName: this.oldVal.replace(/'/g, ""),
-                    dataSourceName: $('.radio-inline input[name="optionsRadiosinline"]:checked ').val(),
-                    checkNull: $("#checkNull").is(':checked')
-                });
+        // json 转 Java
+        jsonToJava: function() {
+            if (!isJSON(this.oldVal)) {
+                layer.msg("参数格式有误，必须是json格式");
+                return;
             }
-        },
-        // 获取实体
-        getEntity: function() {
-            if (StringUtils.isNotBlank(this.oldVal)) {
-                request.getString("/getEntity", {
-                    tableName: this.oldVal.replace(/'/g, ""),
-                    hibernateAnnotation: $("#hibernateAnnotation").is(':checked'),
-                    doradoAnnotation: $("#doradoAnnotation").is(':checked'),
-                    fieldAnnotation: $("#fieldAnnotation").is(':checked'),
-                    baseEntity: $("#baseEntity").is(':checked')
+            var javaStr = "";
+            var getObjStr = function(name, obj) {
+                javaStr += "\n";
+                javaStr += "Map<String,Object> " + name + " = Maps.newHashMap();";
+                var putMap = function(key, value) {
+                    javaStr += name + '.put("' + key + '",' + value + ');';
+                }
+                for (var key in obj) {
+                    var value = obj[key];
+                    if (typeof value == "object") {
+                        if (isArray(value)) {
+                            getObjArray(key, value);
+                            putMap(key, key);
+                        } else {
+                            getObjStr(key, value);
+                            putMap(key, key);
+                        }
+                    } else if (isString(value)) {
+                        putMap(key, '"' + value + '"');
+                    } else {
+                        putMap(key, value);
+                    }
+                }
+            };
+
+            var getObjArray = function(name, array) {
+                javaStr += "\n";
+                javaStr += "List<Object> " + name + " = Lists.newArrayList();";
+                var i = 1;
+                array.forEach(function(item) {
+                    if (typeof item == "object") {
+                        var separate = "Map";
+                        if (isArray(item)) {
+                            separate = "List";
+                        }
+                        var mapName = name + separate;
+                        if (array.length != 1) {
+                            mapName += i++;
+                        }
+                        if (isArray(item)) {
+                            getObjArray(mapName, item);
+                        } else {
+                            getObjStr(mapName, item);
+                        }
+                        javaStr += name + ".add(" + mapName + ");";
+
+                    } else if (isString(value)) {
+                        javaStr += name + '.add("' + item + '");';
+                    } else {
+                        javaStr += name + ".add(" + item + ");";
+                    }
                 });
+            };
+
+            var str = JSON.parse(this.oldVal);
+            if (isArray(str)) {
+                getObjArray("list", str);
+            } else {
+                getObjStr("map", str);
             }
+            this.newVal = javaStr.replace(/;/g, ";\n");
         }
     }
 });

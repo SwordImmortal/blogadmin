@@ -28,18 +28,6 @@
 		<div class="ibox float-e-margins">
 			<div class="ibox-title">
 				<h5>文章列表</h5>
-				<div class="ibox-tools">
-					<a class="collapse-link"> <i class="fa fa-chevron-up"></i>
-					</a> <a class="dropdown-toggle" data-toggle="dropdown" href="#"> <i
-						class="fa fa-wrench"></i>
-					</a>
-					<ul class="dropdown-menu dropdown-user">
-						<li><a href="#">选项1</a></li>
-						<li><a href="#">选项2</a></li>
-					</ul>
-					<a class="close-link"> <i class="fa fa-times"></i>
-					</a>
-				</div>
 			</div>
 			<div class="ibox-content">
 				<div class="row row-lg">
@@ -55,9 +43,10 @@
 									<button type="button" class="btn btn-outline btn-default" id="edit">
 										<i class="glyphicon glyphicon-pencil" aria-hidden="true"></i>
 									</button>
-									<button type="button" class="btn btn-outline btn-default">
+									<button type="button" class="btn btn-outline btn-default" id="deleted">
 										<i class="glyphicon glyphicon-trash" aria-hidden="true"></i>
 									</button>
+									<button type="button" class="btn btn-outline btn-default" id="generateBlog">生成博客</button>
 								</div>
 
 								<table id="blogTableEvents" data-height="400"
@@ -89,15 +78,10 @@
 
 	<!-- Peity -->
 	<script src="js/demo/bootstrap-table-demo.js"></script>
-	
+	<script src="/js/common.js"></script>
 	<script src="/js/layer/layer.js"></script>
 	<script>
 		$(function() {
-			var category = new Map();
-				category.set(1,"jdk");
-				category.set(2,"spring");
-				category.set(3,"生活");
-				category.set(4,"技术周边");
 			$('#blogTableEvents').bootstrapTable({
 				url : "/admin/getBlogs",
 				columns : [ {
@@ -107,13 +91,14 @@
 					title : "标题"
 				}, {
 					field : "content",
-					title : "内容"
+					title : "内容",
+					formatter : function(value, row, index){
+						value = value.replace(/#/g, "").replace(/&emsp;/g, "").replace(/\s/g, "").trim();
+						return (value.length > 25 ? value.substring(0,25): value)+"..." ;
+					}
 				}, {
-					field : "category",
-					title : "分类",
-					formatter: function (value, row, index) {
-	                    return category.get(value);
-	                }
+					field : "categoryName",
+					title : "分类"
 				}, {
 					field : "createDt",
 					title : "创建时间"
@@ -134,6 +119,10 @@
 					refresh : 'glyphicon-repeat',
 					toggle : 'glyphicon-list-alt',
 					columns : 'glyphicon-list'
+				},
+				onDblClickRow: function (row) {
+					let date = row.createDt.substring(0,10).replace(/-/g,"/");
+					window.location = "http://zhaoguhong.com/"+date+"/"+row.title;
 				}
 			});
 			$("#edit").click(function(){
@@ -147,7 +136,34 @@
 			$("#add").click(function(){
 				window.location = "addBlog.html";
 			});
-		})
+			$("#deleted").click(function(){
+				var selections = $('#blogTableEvents').bootstrapTable('getSelections');
+				if(selections.length == 0){
+					layer.msg('请至少选择一个'); 
+					return;
+				}
+				layer.confirm('确定要删除这'+selections.length+"篇博客吗？", function(){
+					var ids =[];
+					selections.forEach(function(item){
+						ids.push(item.id);
+						request.post("/admin/updateBlog", {
+							isDeleted : 1,
+							ids : ids.join(",")
+						},function(result){
+							$('#blogTableEvents').bootstrapTable('refresh');
+						});
+					});
+				});
+			});
+			
+			$("#generateBlog").click(function() {
+				layer.confirm("确定要生成博客文件吗？",function(){
+					request.getString("/admin/generateBlog", {}, function(result) {
+						layer.msg('生成成功'); 
+					});
+				});
+			});
+		});
 	</script>
 </body>
 

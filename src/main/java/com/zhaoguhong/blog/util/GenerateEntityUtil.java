@@ -37,7 +37,11 @@ public class GenerateEntityUtil {
   }
 
   public static String getEntity(Map<String, Object> map) {
-    return new GenerateEntityUtil().generateEntity(map);
+    try {
+      return new GenerateEntityUtil().generateEntity(map);
+    } catch (Exception e) {
+      return e.getMessage();
+    }
   }
 
   public String generateEntity(Map<String, Object> map) {
@@ -58,6 +62,7 @@ public class GenerateEntityUtil {
     parameters.put("fieldTypes", dbHelper.getFieldTypes(tableName));// 字段类型
     parameters.put("primary", dbHelper.getPrimary(tableName));// 主键
     parameters.put("comments", dbHelper.getComments(tableName));// 字段注释
+    parameters.put("simpleComments", dbHelper.getSimpleComments(tableName));// 字段注释
     parameters.put("doradoAnnotation", MapUtils.getBooleanValue(map, "doradoAnnotation"));
     parameters.put("fieldAnnotation", MapUtils.getBooleanValue(map, "fieldAnnotation"));
     parameters.put("hibernateAnnotation", MapUtils.getBooleanValue(map, "hibernateAnnotation"));
